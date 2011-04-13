@@ -11,29 +11,35 @@ def tokenize(str):
 	return re.findall(TokRgx, str.lower())
 
 """
-collection of parsed text data
+store corpus ngrams
 """
 class Grams:
-	def __init__(self, w, f=None):
+	def __init__(self, w, ngmax=2, f=None):
 		self.words = w
-		self.ngrams = defaultdict(int) # ngram id -> frequency
+		self.ngmax = ngmax
+		self.ngrams = [defaultdict(int), defaultdict(int)] # ngram id -> frequency
 		if f:
 			self.add(f)
-	def ngramfreq(self, ng):
-		return self.ngrams[ng]
+	def freq(self, ng):
+		if type(ng) == str:
+			return self.ngrams[0][ng]
+		return self.ngrams[len(ng)-1][ng]
 	# given an iterable 'f', tokenize and produce a {word:id} mapping and ngram frequency count
-	def add(self, f, ngsize=2):
+	def add(self, f):
 		leftover = []
 		try:
 			for line in f:
 				tok = tokenize(line)
 				self.words.addl(tok)
-				ids = leftover + tok #[self.words.id(t) for t in tok]
+				ids = tok #[self.words.id(t) for t in tok]
 				# ngram frequency
-				for i in range(0, len(ids)-ngsize+1):
-					ng = tuple(ids[i:i+ngsize])
-					self.ngrams[ng] += 1
-				leftover = ids[-ngsize:]
+				# len=1
+				for i in ids:
+					self.ngrams[0][i] += 1
+				# len=2
+				for i in range(0, len(ids)-1):
+					ng = tuple(ids[i:i+2])
+					self.ngrams[1][ng] += 1
 		except UnicodeDecodeError:
 			t,v,tb = sys.exc_info()
 			traceback.print_tb(tb)

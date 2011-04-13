@@ -37,7 +37,7 @@ class Doc:
 
 	def checkNGrams(self, g, size=2):
 		for ng in self.ngrams(size):
-			if g.ngramfreq(ng) == 0:
+			if g.freq(ng) == 0:
 				yield ng
 
 if __name__ == '__main__':
