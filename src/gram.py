@@ -2,13 +2,32 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-import re
-import sys
-import traceback
+import re, sys, traceback
+import unittest
 
-TokRgx = re.compile("\w+(?:'\w+)?")
+"""
+Tokenizing regular expression
+Group:
+	letters
+	numbers and any punctuation
+		group things like dates, times, ip addresses, etc. into a single token
+"""
+TokRgx = re.compile('\d+(?:[^\w\s]+\d+)*|\w+')
 def tokenize(str):
 	return re.findall(TokRgx, str.lower())
+
+class TokenizerTest(unittest.TestCase):
+	def test_tokenize(self):
+		Expect = [
+			('', []),
+			('a', ['a']),
+			('A', ['a']),
+			('Aa', ['aa']),
+			('a b', ['a','b']),
+		]
+		for s,xp in Expect:
+			res = tokenize(s)
+			self.assertEqual(xp, res)
 
 """
 store corpus ngrams
@@ -17,7 +36,7 @@ class Grams:
 	def __init__(self, w, ngmax=2, f=None):
 		self.words = w
 		self.ngmax = ngmax
-		self.ngrams = [defaultdict(int), defaultdict(int)] # ngram id -> frequency
+		self.ngrams = (defaultdict(int), defaultdict(int)) # ngram id -> frequency
 		if f:
 			self.add(f)
 	def freq(self, ng):
@@ -29,16 +48,17 @@ class Grams:
 		leftover = []
 		try:
 			for line in f:
+				if type(line) == bytes:
+					line = line.decode('utf8')
 				tok = tokenize(line)
 				self.words.addl(tok)
-				ids = tok #[self.words.id(t) for t in tok]
 				# ngram frequency
 				# len=1
-				for i in ids:
-					self.ngrams[0][i] += 1
+				for t in tok:
+					self.ngrams[0][t] += 1
 				# len=2
-				for i in range(0, len(ids)-1):
-					ng = tuple(ids[i:i+2])
+				for i in range(0, len(tok)-1):
+					ng = tuple(tok[i:i+2])
 					self.ngrams[1][ng] += 1
 		except UnicodeDecodeError:
 			t,v,tb = sys.exc_info()
@@ -47,9 +67,5 @@ class Grams:
 import pickle
 
 if __name__ == '__main__':
-	f = ['a b c','d e f']
-	g = Grams(f)
-	print(g)
-
-	#print([tuple(id2w[id] for id in ng) for ng in ngram_match('the', w2id, ngrams)[:100]])
+	unittest.main()
 
