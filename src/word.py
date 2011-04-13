@@ -8,7 +8,7 @@ Word statistics
 """
 class Words:
 	def __init__(self, f=None):
-		self.w2id = defaultdict() # word -> id
+		self.w2id = dict() # word -> id
 		self.id2w = dict() # id -> word
 		self.idfreq = defaultdict(int) # word id -> frequency
 	def add(self, word):
@@ -25,9 +25,15 @@ class Words:
 				self.idfreq[self.w2id[word]] += 1
 	# return token id or 0 if it does not exist
 	def id(self, tok):
-		return self.w2id[tok]
+		try:
+			return self.w2id[tok]
+		except KeyError:
+			return 0
 	def word(self, id):
-		return self.id2w[id]
+		try:
+			return self.id2w[id]
+		except KeyError:
+			return None
 
 if __name__ == '__main__':
 	pass
