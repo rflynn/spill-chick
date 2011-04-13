@@ -1,0 +1,27 @@
+
+text document -> find potential spelling/grammar errors
+
+corpus -> [tokens] -> ({word:id}, {(ngram,):freq})
+	hmmm it turns out the contents of the corpus make a huge difference
+
+for each word:
+	if unknown:
+		calculate possible relatives using levenshtein and ngrams, possibly pronunciation too
+	submit list of corrections to user
+		record which corrections are made, use later
+once single words have been corrected...
+for ngrams 2..n:
+	if ngram falls below some configurable threshold:
+		...
+		submit list
+
+Letter.......atomic writing
+Phoneme......atomic sound
+Token........[Letter] | [Phoneme]
+Gram.........(Token, Token)
+Line.........[Token]
+Doc..........[Line]
+Corpus.......[Doc]
+Id...........{Token:Id} a unique integer representing a token, reduces memory usage
+
+

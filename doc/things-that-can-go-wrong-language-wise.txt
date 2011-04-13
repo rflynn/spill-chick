@@ -1,0 +1,37 @@
+
+How You Fuck Up			How We Can Detect/Fix It
+------------------------------- ----------------------------------------
+
+word mis-spelling		standard spellchecker
+resulting in a non-word		with a dictionary (aspell, ispell, etc.)
+'hello' -> 'helo'
+
+word mis-spelling		?
+resulting in another word	try: word sequence mapping and levenshtein
+'hello there' -> 'hell there'
+
+word transposition
+'foo bar' -> 'bar foo'
+
+word omission
+'oops, i the word'
+
+grammar screw up		grammar checkers(?)
+various
+'i am.' -> 'i is.'		try: tense association mapping am/is/are
+
+homophone confusion		
+'24 caret'			try: map pronunciation
+'24 carrot'
+'composed' -> 'come posed' 
+
+slang/pronunciation
+'hello' -> 'yello'
+
+botched idiom 			?
+'intents and purposes' ->	try: idiom identification and word->pronunciation mapping
+'intensive purposes'		question: is this really any different thhan above?
+
+incorrect Proper Noun		?
+'Mr. Johnson' -> 'Mr. Jonson'	try: hmm, contextual proper noun mapping(?)
+
