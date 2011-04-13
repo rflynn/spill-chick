@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-import collections, re, sys
-import gzip
+"""
+Handle phonetics; i.e. the way things sound
+"""
+
+import collections, re, sys, gzip, pickle, os, mmap
 from word import Words
 
 class Phon:
@@ -9,21 +12,32 @@ class Phon:
 		self.words = w
 		self.word = collections.defaultdict(list)
 		self.phon = collections.defaultdict(list)
-		with gzip.open('../data/cmudict/cmudict.0.7a.gz', 'rb') as f:
+		self.load()
+	def load(self):
+		path = '../data/cmudict/'
+		file = 'cmudict.0.7a'
+		# extract file if necessary
+		if not os.path.exists(path+file):
+			with open(path+file, 'wb') as dst:
+				with gzip.open(path+file+'.gz', 'rb') as src:
+					dst.write(src.read())
+		with open(path+file, 'r') as f:
 			for line in f:
-				line = line.decode('utf8')
 				if line.startswith(';;;'):
 					continue
 				line = line.strip().lower()
 				word, phon = line.split('  ')
-				w.add(word)
+				self.words.add(word)
 				self.word[word].append(phon)
 				self.phon[phon].append(word)
 
-	def soundsLike(self, word):
+	"""
+	return a list of words that sound like 'word', as long as they appear in ng
+	"""
+	def soundsLike(self, word, ng):
 		l = []
 		for w in self.word[word]:
-			l += self.phon[w]
+			l += [w for w in self.phon[w] if ng.freq(w) != 0]
 		return l
 
 if __name__ == '__main__':
