@@ -16,7 +16,7 @@ import itertools
 if __name__ == '__main__':
 	import bz2
 	corpus = ['There it is!','I was right all along.',"I write their stuff? Nope I don't."]
-	corpus = bz2.BZ2File('../data/big.txt.bz2')
+	corpus = bz2.BZ2File('../data/corpus/big.txt.bz2')
 	doc = ['Their it is.','','Nope, I was write, Xxyz!']
 	print('corpus=%s' % (corpus,))
 	print('doc=%s' % (doc,))
