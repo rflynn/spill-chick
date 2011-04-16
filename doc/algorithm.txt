@@ -1,27 +1,46 @@
 
-text document -> find potential spelling/grammar errors
+Goal: maximize self-consistency of a corpus of documents
 
-corpus -> [tokens] -> ({word:id}, {(ngram,):freq})
-	hmmm it turns out the contents of the corpus make a huge difference
+Consider:
+	fingerprinting words by content: hello = e:1,h:1,l:2,o:1
 
-for each word:
-	if unknown:
-		calculate possible relatives using levenshtein and ngrams, possibly pronunciation too
-	submit list of corrections to user
-		record which corrections are made, use later
-once single words have been corrected...
-for ngrams 2..n:
-	if ngram falls below some configurable threshold:
-		...
-		submit list
+Algorithm:
+	AutoRevise(doc):
+		Target the smallest, least-known ngrams first.
+		List alternatives
+			Begin with cheap, straight-forward, common alternatives and progress to more expensive/complex iff necessary
+				Try to solve individual, unknown tokens first
+				Preserve token boundaries (cheap)
+					Edit distance 1, edit distance 2
+					Phonetic similarities
+				Disregard token boundaries (expensive)
+					Parse all possible token sequences
+						
+			For each alternative
+				Score its effectiveness by evaluating the complete repercussions
+		Retain the best alternatives
+		Propose revisions unobtrusively.
+			Never modify without the user's permission. http://en.wikipedia.org/wiki/Cupertino_effect
+		Record revision selection.
+			Incorporate into future decisions.
+		If revision is selected:
+			Update document and all statistics/ngrams to reflect the change
 
-Letter.......atomic writing
-Phoneme......atomic sound
-Token........[Letter] | [Phoneme]
-Gram.........(Token, Token)
-Line.........[Token]
-Doc..........[Line]
-Corpus.......[Doc]
-Id...........{Token:Id} a unique integer representing a token, reduces memory usage
+parse/load base corpus of target language
+parse/load local corpus
+
+calculate frequency of all ngrams 1..n
+sort ngrams on size:asc, freq:asc
+for ng in ngrams below some threshold:
+	calculate feasible permutations for ng
+		note: focus only on one area at a time, as the resulting change will modify the rest of the document
+		for tok in ng:
+			calculate list of permutations: spelling edits, pronunciation
+		account for merging/splitting of tokens, etc.
+
+
+conduct re search : conduct research
+hitherehowareyou : hi there how are you
+
 
 
