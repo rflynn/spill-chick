@@ -1,39 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
+import collections
+
+Alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+def edits1(word):
+	splits     = [(word[:i], word[i:]) for i in range(len(word) + 1)]
+	deletes    = [a + b[1:] for a, b in splits if b]
+	transposes = [a + b[1] + b[0] + b[2:] for a, b in splits if len(b)>1]
+	replaces   = [a + c + b[1:] for a, b in splits for c in Alphabet if b]
+	inserts    = [a + c + b     for a, b in splits for c in Alphabet]
+	return set(deletes + transposes + replaces + inserts)
 
 """
 Word statistics
 """
 class Words:
+
 	def __init__(self, f=None):
-		self.w2id = dict() # word -> id
-		self.id2w = dict() # id -> word
-		self.idfreq = defaultdict(int) # word id -> frequency
+		self.frq = collections.Counter()
+
 	def add(self, word):
-		self.addl([word])
-		return self.w2id[word]
+		self.frq[word] += 1
+
 	def addl(self, words):
-		for word in words:
-			if word not in self.w2id:
-				id = len(self.w2id)+1
-				self.w2id[word] = id
-				self.id2w[id] = word
-				self.idfreq[id] = 1
-			else:
-				self.idfreq[self.w2id[word]] += 1
-	# return token id or 0 if it does not exist
-	def id(self, tok):
-		try:
-			return self.w2id[tok]
-		except KeyError:
-			return 0
-	def word(self, id):
-		try:
-			return self.id2w[id]
-		except KeyError:
-			return None
+		self.frq.update(words)
+
+	def freq(self, word):
+		return self.frq[word]
+
+	def known_edits2(self, word):
+		return set(e2 for e1 in edits1(word) for e2 in edits1(e1) if e2 in self.frq)
+
+	def known(self, words): return set(w for w in words if w in self.frq)
+
+	# FIXME: douce -> douse
+	# FIXME: iv -> ivy
+	def correct(self, word):
+		candidates = self.known([word]) or self.known(edits1(word)) or self.known_edits2(word) or [word]
+		return max(candidates, key=self.frq.get)
+
+	# FIXME: bid -> big
+	# FIXME: hungreh -> hungry
+	def similar(self, word, n=3):
+		candidates = [(w,0) for w in self.known([word])]
+		candidates.extend([(w,1) for w in self.known(edits1(word))])
+		candidates.extend([(w,2) for w in self.known_edits2(word)])
+		candidates.extend([(word,3)])
+		return [w for w,n in sorted(candidates, key=lambda x:x[1])[:n]]
 
 if __name__ == '__main__':
 	pass
