@@ -5,23 +5,36 @@
 Doc represents a document being checked against existing Grams
 """
 
+import collections
+import unittest
+import math
 import gram
 
 """
-Tokenize document contents; each token is associated with positional data
+Tokenized contents of a single file
+Tokens associated with positional data to faciliate changes
 """
 class Doc:
+
 	def __init__(self, f, w):
-		self.f = f
-		self.words = w
+		self.words = w				# global tokens
+		self.docwords = collections.Counter()	# local {token:freq}
+		self.tokenize(f)
+
+	def tokenize(self, f):
+		self.lines = []
 		self.tok = [[]]
 		for lcnt,line in enumerate(f):
+			self.lines.append(line)
 			line = line.lower() # used for index below
 			toks = gram.tokenize(line)
-			if toks == []:
+			if toks == ['\n'] or toks == []:
 				if self.tok[-1] != []:
 					self.tok.append([])
 				continue
+			if toks[-1] == '\n':
+				toks.pop()
+			self.docwords.update(toks) # add words to local dictionary
 			tpos = 0
 			ll = []
 			for t in toks:
@@ -29,22 +42,37 @@ class Doc:
 				ll.append((t, lcnt, tpos))
 			self.tok[-1] += ll
 
+	def totalTokens(self):
+		return sum(self.docwords.values())
+
+	"""
 	def unknownToks(self):
 		for tok in self.tok:
 			for t in tok:
-				if self.words.id(t[0]) == 0:
+				if self.words.freq(t[0]) == 0:
 					yield t
+	"""
 
-	def ngrams(self, size=2):
+	# given token t supply surrounding token ngram (x, tok, y)
+	def surroundTok(self, t):
+		line = self.tok[t[1]]
+		idx = line.index(t)
+		if idx > 0 and idx < len(line)-1:
+			return tuple(line[idx-1:idx+2])
+		return None
+
+	def ngrams(self, size):
 		for tok in self.tok:
 			for i in range(0, len(tok)+1-size):
 				yield tuple(tok[i:i+size])
 
-	def checkNGrams(self, g, size=2):
+	def ngramfreq(self, g, size):
+		# FIXME: we probably shouldn't be hard-coding an ad hoc scoring system in here
+		sc = 1 + math.log(size)
 		for ng in self.ngrams(size):
 			ng2 = tuple(t[0] for t in ng)
-			if g.freq(ng2) == 0:
-				yield ng
+			freq = g.freq(ng2)
+			yield (ng, freq, round(freq * sc,1))
 
 	"""
 	Modify replacement word 'y' to match the capitalization of existing word 'x'
@@ -66,28 +94,34 @@ class Doc:
 	given an ngram containing position data, replace corresponding data in lines with 'mod'
 	"""
 	def applyChange(self, lines, ngpos, mod, off):
-		# FIXME: must keep track of offset changes produced by replacements of different lengths
-		for (o,l,pos),rep in zip(ngpos, mod):
-			pos += off[l]
-			end = pos + len(o)
-			ow = lines[l][pos:end]
-			cap =  Doc.matchCap(ow, rep)
-			lines[l] = lines[l][:pos] + cap + lines[l][end:]
-			off[l] += len(cap) - len(o)
+		o,l,pos = ngpos
+		pos += off[l]
+		end = pos + len(o)
+		ow = lines[l][pos:end]
+		cap =  Doc.matchCap(ow, mod)
+		lines[l] = lines[l][:pos] + cap + lines[l][end:]
+		off[l] += len(cap) - len(o)
 		return (lines, off)
-	
-	# alternative popularity... [((('their', 0, 0), ('it', 0, 6)), [(('there', 'it'), 17)]), ((('nope', 2, 0), ('i', 2, 6)), []), ((('was', 2, 8), ('write', 2, 12)), [(('was', 'right'), 24)]), ((('write', 2, 12), ('xxyz', 2, 19)), [])]
-	def demoChanges(self, lines, changes):
+
+	"""
+	given a list of positional ngrams and a list of replacements, apply the changes
+	and return a copy of the updated file
+	"""
+	def demoChanges(self, changes):
+		lines = self.lines[:]
 		off = [0] * len(lines)
 		for change in changes:
-			ngpos, mods = change
-			if mods == []:
-				continue
-			mod,score = mods[0]
+			ngpos, mod = change
 			lines, off = self.applyChange(lines, ngpos, mod, off)
 		return lines
 
+	def applyChanges(self, changes):
+		self.tokenize(self.demoChanges(changes))
+
+class DocTest(unittest.TestCase):
+	def test_change(self):
+		pass
+
 if __name__ == '__main__':
-	d = Doc(['a b c','d e f'])
-	print(d.tok)
+	unittest.main()
 
