@@ -13,9 +13,6 @@ resulting in another word	try: word sequence mapping and levenshtein
 word transposition
 'foo bar' -> 'bar foo'
 
-word omission
-'oops, i the word'
-
 grammar screw up		grammar checkers(?)
 various
 'i am.' -> 'i is.'		try: tense association mapping am/is/are
@@ -25,13 +22,16 @@ homophone confusion
 '24 carrot'
 'composed' -> 'come posed' 
 
-slang/pronunciation
-'hello' -> 'yello'
-
 botched idiom 			?
 'intents and purposes' ->	try: idiom identification and word->pronunciation mapping
 'intensive purposes'		question: is this really any different thhan above?
 
 incorrect Proper Noun		?
 'Mr. Johnson' -> 'Mr. Jonson'	try: hmm, contextual proper noun mapping(?)
+
+slang/pronunciation
+'hello' -> 'yello'
+
+word omission
+'oops, i the word'
 
