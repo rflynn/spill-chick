@@ -16,6 +16,7 @@ for ng in ngrams below some threshold:
 import re
 from math import log,sqrt
 from collections import defaultdict
+from itertools import product
 
 def tokenize(text): return re.findall('[a-z]+', text.lower()) 
 
@@ -66,7 +67,7 @@ def spl(str, freq):
 		yield [str]
 	else:
 		i = 0
-		while i < len(str):
+		while i <= len(str):
 			pref,word,suf = nextword(str, freq, i)
 			#print((i,str,pref,word,suf))
 			if not word:
@@ -86,7 +87,7 @@ def spl(str, freq):
 """
 given a list of tokens, yield all possible permutations via splitting
 """
-def splits(toks, freq):
+def splits(toks, freq, g):
 	score = dict()
 	# list all possible substrings that are known words
 	str = ''.join(toks)
@@ -96,7 +97,24 @@ def splits(toks, freq):
 			sc = freq.get(w, 0)
 			if sc > 0:
 				score[w] = sc
+	print('splits score=',score)
+
+	# use ngrams to determine which words are seen next to each other;
+	# use that information to more efficiently parse
 	# find all permutations that contain at least one word
+
+	ngrams = []
+	for x,y in product(score.keys(), score.keys()):
+		# ensure adjacency and order
+		xi = str.index(x) + len(x)
+		if str[xi:xi+len(y)] != y:
+			continue
+		ng = (x,y)
+		sc = g.freq(ng)
+		if sc > 0:
+			ngrams.append(ng)
+	print('splits ngrams=',ngrams)
+
 	for x in spl(str, score):
 		yield tuple(x)
 
