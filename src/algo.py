@@ -21,6 +21,7 @@ from itertools import product
 def tokenize(text): return re.findall('[a-z]+', text.lower()) 
 
 Freq = {
+	'does':1, 'it':1, 'use':1,
 	'i':1, 'know':1, 'right':1,
 	'fuck':1,
 	'conduct':2, 'research':2, 'search':2, 'con':1, 'duct':1,
@@ -51,10 +52,10 @@ def joins(toks):
 find first substring str[x:y] where exists freq[str[x:y]] where y >= l
 return tuple (prefix before substring, the substring, the rest of the string)
 """
-def nextword(str, freq, l=1):
+def nextword(str, ng1, l=1):
 	for i in range(len(str)):
 		for j in range(i+l, min(i+18, len(str))):
-			if freq.get(str[i:j]):
+			if str[i:j] in ng1:
 				return (str[:i], str[i:j], str[j:])
 	return (str,'','')
 
@@ -62,13 +63,13 @@ def nextword(str, freq, l=1):
 given a string of one or more valid substring words, yield a list of permutations
 freq is a dict() of all recognized words in str
 """
-def spl(str, freq):
+def spl(str, ng1):
 	if len(str) < 2:
 		yield [str]
 	else:
 		i = 0
 		while i <= len(str):
-			pref,word,suf = nextword(str, freq, i)
+			pref,word,suf = nextword(str, ng1, i)
 			#print((i,str,pref,word,suf))
 			if not word:
 				#if i == 0 or freq.get(pref):
@@ -79,7 +80,7 @@ def spl(str, freq):
 				w = []
 				if pref: w.append(pref)
 				w.append(word)
-				for sufx in spl(suf, freq):
+				for sufx in spl(suf, ng1):
 					if sufx:
 						yield w + sufx
 				i += len(word) + 1
@@ -115,8 +116,24 @@ def splits(toks, freq, g):
 			ngrams.append(ng)
 	print('splits ngrams=',ngrams)
 
-	for x in spl(str, score):
-		yield tuple(x)
+	# all of the words that can begin an ngram
+	ng1 = set([x for x,y in ngrams])
+
+	def toks2ngrams(toks, size):
+		size = min(len(toks), size)
+		for ng in zip(*[toks[i:] for i in range(size)]):
+			yield ng
+
+	# sort splits by ngram score
+	pop = []
+	for s in spl(str, ng1):
+		freq = sum([g.freq(x) for x in toks2ngrams(s, 3)])
+		if freq:
+			pop.append((tuple(s), freq))
+	pop = sorted(pop, key=lambda x:x[1], reverse=True)
+	print('splits() pop=',pop)
+	for p,_ in pop:
+		yield p
 
 def weight(tok):
 	factor = 1 + len(tok)
