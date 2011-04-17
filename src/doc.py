@@ -40,6 +40,7 @@ class Doc:
 			for t in toks:
 				tpos = line.index(t, tpos)
 				ll.append((t, lcnt, tpos))
+				tpos += len(t)
 			self.tok[-1] += ll
 
 	def totalTokens(self):
