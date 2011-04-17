@@ -43,12 +43,8 @@ class Words:
 
 	# FIXME: bid -> big
 	# FIXME: hungreh -> hungry
-	def similar(self, word, n=3):
-		candidates = [(w,0) for w in self.known([word])]
-		candidates.extend([(w,1) for w in self.known(edits1(word))])
-		candidates.extend([(w,2) for w in self.known_edits2(word)])
-		candidates.extend([(word,3)])
-		return [w for w,n in sorted(candidates, key=lambda x:x[1])[:n]]
+	def similar(self, word):
+		return list(self.known(edits1(word)))
 
 if __name__ == '__main__':
 	pass
