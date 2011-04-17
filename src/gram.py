@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 import re, sys, traceback
 import unittest
+from operator import itemgetter
 
 """
 Tokenizing regular expression
@@ -12,8 +13,11 @@ Group:
 	numbers and any punctuation
 		group things like dates, times, ip addresses, etc. into a single token
 """
-TokRgx = re.compile('\d+(?:[^\w\s]+\d+)*|\w+|\n')
+TokRgxNL = re.compile('\d+(?:[^\w\s]+\d+)*|\w+|\n')
+TokRgx = re.compile('\d+(?:[^\w\s]+\d+)*|\w+')
 def tokenize(str):
+	return re.findall(TokRgxNL, str.lower())
+def tokenize_no_nl(str):
 	return re.findall(TokRgx, str.lower())
 
 class TokenizerTest(unittest.TestCase):
@@ -39,42 +43,59 @@ class Grams:
 		self.ngrams = ( # ngram id -> frequency
 			None,
 			None,
-			defaultdict(int),
-			defaultdict(int),
+			Counter(),
+			Counter(),
 		)
-		self.surround = defaultdict(dict) # (x,y,z) : [(x,z)] : [y]
 		if f:
 			self.add(f)
 	def freq(self, ng):
-		if type(ng) == str:
-			return self.words.freq(ng)
+		#assert type(ng) == tuple
 		if len(ng) == 1:
 			return self.words.freq(ng[0])
+		if ng == (): # FIXME: shouldn't need this
+			return 0
 		return self.ngrams[len(ng)][ng]
+	def freqs(self, s):
+		return self.words.freq(s)
 	# given an iterable 'f', tokenize and produce a {word:id} mapping and ngram frequency count
 	def add(self, f):
 		if type(f) == list:
 			contents = '\n'.join(f)
 		else:
-			contents = f.read()
-			if type(contents) == bytes:
-				contents = contents.decode('utf8')
-		try:
-			toks = tokenize(contents)
-			self.words.addl(toks)
-			for x,y in zip(toks, toks[1:]):
-				self.ngrams[2][(x,y)] += 1
-			for x,y,z in zip(toks, toks[1:], toks[2:]):
-				self.ngrams[3][(x,y,z)] += 1
-				try:
-					self.surround[(x,z)][y] += 1
-				except KeyError:
-					self.surround[(x,z)][y] = 1
-			#for x,y,z,zz in zip(toks, toks[1:], toks[2:], toks[3:]):
-				#self.ngrams[(x,y,z,zz)] += 1
-		except UnicodeDecodeError:
-			t,v,tb = sys.exc_info()
-			traceback.print_tb(tb)
+			try:
+				contents = f.read(1 * 1024 * 1024) # FIXME
+				if type(contents) == bytes:
+					contents = contents.decode('utf8')
+			except UnicodeDecodeError:
+				t,v,tb = sys.exc_info()
+				traceback.print_tb(tb)
+		toks = tokenize_no_nl(contents)
+		self.words.addl(toks)
+		self.ngrams[2].update(zip(toks, toks[1:]))
+		for x,y,z in zip(toks, toks[1:], toks[2:]):
+			self.ngrams[3][(x,y,z)] += 1
+		print('      ngrams[2] %8u' % len(self.ngrams[2]))
+		print('      ngrams[3] %8u' % len(self.ngrams[3]))
+
+	def ngram_like(self, ng):
+		print('ngram_like(ng=',ng,')')
+		if len(ng) <= 1:
+			return []
+		assert len(ng) in (2,3)
+		def uniq(s0,n):
+			d = dict([(s[0][n],s[1]) for s in s0])
+			s = sorted(d.items(), key=itemgetter(1), reverse=True)
+			return [x for x,y in s]
+		if len(ng) == 2:
+			f = lambda x: x[0][0] == ng[0] or \
+				      x[0][1] == ng[1]
+		elif len(ng) == 3:
+			f = lambda x:(x[0][0] == ng[0]) + \
+				     (x[0][1] == ng[1]) + \
+				     (x[0][2] == ng[2]) == 2
+		s0 = list(filter(f, self.ngrams[len(ng)].items()))
+		cnt = tuple(uniq(s0,n) for n in range(len(ng)))
+		return cnt
 
 import pickle
 
