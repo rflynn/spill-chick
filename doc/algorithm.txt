@@ -1,6 +1,13 @@
 
 Goal: maximize self-consistency of a corpus of documents
 
+overhere -> overhear (x -> x')
+over,here -> over,here (x,y -> x,y)
+over,hear -> overhear (x,y -> x')
+i,now,the -> i,know,the (x,y,z -> x,y',z)
+than,you,very,much -> thank,you,very,much (x,y,z,zz -> x',y,z,zz)
+thank,yo -> thank,you (x,y -> x,y')
+
 Consider:
 	fingerprinting words by content: hello = e:1,h:1,l:2,o:1
 
