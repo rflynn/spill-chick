@@ -45,13 +45,11 @@ class Doc:
 	def totalTokens(self):
 		return sum(self.docwords.values())
 
-	"""
 	def unknownToks(self):
 		for tok in self.tok:
 			for t in tok:
 				if self.words.freq(t[0]) == 0:
 					yield t
-	"""
 
 	# given token t supply surrounding token ngram (x, tok, y)
 	def surroundTok(self, t):
@@ -67,12 +65,9 @@ class Doc:
 				yield tuple(tok[i:i+size])
 
 	def ngramfreq(self, g, size):
-		# FIXME: we probably shouldn't be hard-coding an ad hoc scoring system in here
-		sc = 1 + math.log(size)
 		for ng in self.ngrams(size):
 			ng2 = tuple(t[0] for t in ng)
-			freq = g.freq(ng2)
-			yield (ng, freq, round(freq * sc,1))
+			yield (ng, g.freq(ng2))
 
 	"""
 	Modify replacement word 'y' to match the capitalization of existing word 'x'
