@@ -37,8 +37,11 @@ class Phon:
 	def soundsLike(self, word, ng):
 		l = []
 		for w in self.word[word]:
-			l += [w for w in self.phon[w] if ng.freq(w) != 0]
-		return l
+			for x in self.phon[w]:
+				fr = ng.freqs(x)
+				if fr > 0:
+					l.append((x,fr))
+		return [w for w,fr in sorted(l, key=lambda x:x[1], reverse=True)]
 
 if __name__ == '__main__':
 
