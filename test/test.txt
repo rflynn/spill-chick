@@ -1,0 +1,129 @@
+# unit tests
+#i now : i know
+i no you : i know you
+i didn't no : i didn't know
+
+i now know : i now know
+i know now : i know now
+
+doe sit use machien learning : does it use machine learning
+
+#--end--
+
+turn the know : turn the knob
+overhere : overhear
+over hear : overhear
+over here : over here
+oh de colone : eau de cologne
+#a think so : i think so
+inztrnlazti : international
+
+spillchick : spellcheck
+spill check : spell check
+spill chick : spell check
+
+
+# correct non-fixes
+I love non-sequiturs. : I love non-sequiturs.
+
+# misspellings: non-words
+naieve : naive
+#bazillion : billion
+#bajillion : billion
+joyd ivision : joy division
+Insturctions: : Instructions:
+descently well : decently well
+a pthon library : a python library
+#santimoniousness : sanctimoniousness 
+integeter division : integer division
+USB-to-serail chip : USB-to-serial chip
+an IV league school : an Ivy league school
+say "good riddens" to : say "good riddance" to
+RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
+This is all very tenative. : This is all very tentative.
+someone otther than yourself : someone other than yourself
+create a passified country : create a pacified country # urbandictionary
+someone douce me in chocolate syrup : someone douse me in chocolate syrup
+Downloading copywritten movies : Downloading copyrighted movies
+I still have a double cheese burger in the refridgerator : I still have a double cheeseburger in the refrigerator
+
+# transpositions resulting in words
+The dog was dense : The fog was dense
+I am very tried : I am very tired
+whatever remains, whoever improbable, must be the truth. : whatever remains, however improbable, must be the truth.
+
+# transcriptions resulting in non-words
+Gtegory : Gregory
+32rd of Auguts : 23rd of August # logically impossible
+Johsia : Joshua
+
+# transpositions resulting in non-words
+Gergory : Gregory
+23rd of Auguts : 23rd of August
+Johsua : Joshua
+
+# misspellings resulting in words
+their is : there is
+their it is : there it is
+i new that! : i knew that!
+peace of shit : piece of shit
+I am found of you : I am fond of you
+Try and fry again : Try and try again
+nope, i was write : nope, i was right # metallic
+in the sample place : in the same place
+we have a bid backyard : we have a big backyard
+Summer is almost hear. : Summer is almost here.
+a shallow accent angle. : a shallow ascent angle.
+someone otter than yourself : someone other than yourself
+now it makes perfect sensor : now it makes perfect sense
+I would appreciate and alternative to : I would appreciate an alternative to
+"Yes, yes. I now the theorem." : "Yes, yes. I know the theorem." # Second Foundation, Isaac Asmiov, p. 105
+Humans many simply be too stupid : Humans may simply be too stupid
+At first it was effecting our sex life : At first it was affecting our sex life
+#pointers to the UINT type will through away the significant bits : pointers to the UINT type will throw away the significant bits
+#I think they call that a sentence now days. : I think they call that a sentence nowadays.
+
+# botched idioms
+dry rum : dry run
+never cry wool : never cry wolf
+funky farm : funny farm
+scotch free : scot-free
+win or loose : win or lose
+worth it's salt : worth its salt
+garden of eatin' : garden of eden
+pushing up lazies : pushing up daisies
+#two in the hand is worth one in the bush : one in the hand is worth two in the bush
+
+#It it did, the future would undoubtedly be changed in some minor respects. : If it did, the future would undoubtedly be changed in some minor respects. # Foundation, Isaac Asimov p. 33
+
+# phonetic errors
+oic : oh i see
+f u c k : fuck
+hell-o : hello
+orly : oh really
+o i c : oh i see
+faux king hill : fucking hell
+your right dude. : you're right dude.
+in the sample place : in the same place
+hungreh. wants soo shee : hungry. want sushi
+goan jump off a bridge : go and jump off a bridge
+
+# mixed
+#did he steel you ice cream? : did he steal your ice cream?
+you are backpaddling from a smartass slapdown :-) : you are backpedaling from a smartass slapdown :-)
+
+# intentional typos
+#concise unlike the verbosity of Java and Erlong. : concise unlike the verbosity of Java and Erlang.
+
+
+# grammatical errors
+That it. : That's it.
+#You have less followers then him : You have fewer followers than him
+
+# missing words
+#I doubt we'll this any time soon. : I doubt we'll do this any time soon.
+#production on hold across the country to allow to watch the match. : put production on hold across the country to allow employees to watch the match.
+
+# unclassified
+Microsoft is obsessed Websockets : Microsoft is obsessed with Websockets
+
