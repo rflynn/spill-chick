@@ -1,3 +1,4 @@
 *.swp
 *.pyc
 src/test.prof
+data/corpus/*
