@@ -49,6 +49,11 @@ class Words:
 			e |= self.known_edits2(word)
 		return e
 
+	@staticmethod
+	def signature(word):
+		"sorted list of ('letter',frequency) for all letters in word"
+		return [(c,len(list(l))) for c,l in groupby(sorted(word))]
+
 if __name__ == '__main__':
 	pass
 
