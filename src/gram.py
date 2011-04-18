@@ -79,8 +79,14 @@ class Grams:
 		print('      ngrams[3] %8u' % len(self.ngrams[3]))
 		print('      ngrams[4] %8u' % len(self.ngrams[4]))
 
+	"""
+	given ngram of arity n, return all known ngrams containing n-1 matches;
+	that is, where all but one of the tokens don't match.
+	this is obviously O(n) and because it is exhaustive it is inefficient.
+	consider eventually either moving ngrams into an sqlite database or a
+	custom in-memory structure in C
+	"""
 	def ngram_like(self, ng):
-		print('ngram_like(ng=',ng,')')
 		if len(ng) <= 1:
 			return []
 		assert len(ng) in (2,3)
@@ -89,14 +95,16 @@ class Grams:
 			s = sorted(d.items(), key=itemgetter(1), reverse=True)
 			return [x for x,y in s]
 		if len(ng) == 2:
-			f = lambda x: x[0][0] == ng[0] or \
-				      x[0][1] == ng[1]
+			f = lambda x: x[0] == ng[0] or \
+				      x[1] == ng[1]
 		elif len(ng) == 3:
-			f = lambda x:(x[0][0] == ng[0]) + \
-				     (x[0][1] == ng[1]) + \
-				     (x[0][2] == ng[2]) == 2
-		s0 = list(filter(f, self.ngrams[len(ng)].items()))
-		cnt = tuple(uniq(s0,n) for n in range(len(ng)))
+			f = lambda x:(x[0] == ng[0]) + \
+				     (x[1] == ng[1]) + \
+				     (x[2] == ng[2]) == 2
+		lng = len(ng)
+		s0 = filter(f, self.ngrams[lng].keys())
+		s1 = [(k,self.ngrams[lng][k]) for k in s0]
+		cnt = tuple(uniq(s1,n) for n in range(lng))
 		return cnt
 
 import pickle
