@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ex: set ts=4 et:
+# Copyright 2011 Ryan Flynn <parseerror+spill-chick@gmail.com>
 
 """
 Test our word/grammar algorithm
@@ -8,12 +9,13 @@ Test our word/grammar algorithm
 
 from math import log
 from operator import itemgetter
-from itertools import takewhile, product, cycle
+from itertools import takewhile, product, cycle, chain
 from collections import defaultdict
 from word import Words
 from phon import Phon
 from gram import Grams
 from doc import Doc
+import algo
 
 def levenshtein(a,b):
     "Calculates the Levenshtein distance between a and b."
@@ -35,32 +37,21 @@ def levenshtein(a,b):
             
     return current[n]
 
+# convenience functions
+def rsort(l, **kw):
+    return sorted(l, reverse=True, **kw)
+def rsortn(l, n):
+    return rsort(l, key=itemgetter(n))
+def rsort1(l):
+    return rsort(l, key=itemgetter(1))
+def sortn(l, n):
+    return sorted(l, key=itemgetter(n))
+def flatten(ll):
+    return chain.from_iterable(ll)
+
 if __name__ == '__main__':
 
     import bz2, sys, re
-
-    """
-    this part is EXPONENTIALLY expensive and should only be used for small (len()<=16) substrings
-    where no decent solutions are found above
-    """
-    """
-    merge overlapping ngrams. tokens are accompanied by positional data which guarentees uniqueness.
-    allows us to address larger sections than we can handle by static ngrams alone.
-    note: groupby() doesn't handle two-item keys
-    """
-    import algo
-    """
-    def merge_posngrams(ngrams):
-        if ngrams == []:
-            return []
-        m = [list(ngrams[0])]
-        for ng in ngrams[1:]:
-            if ng[0] == m[-1][-1]:
-                m[-1].append(ng[-1])
-            else:
-                m.append(list(ng))
-        return list(map(tuple, m))
-    """
 
     def inter_token(toks, freq, g):
         if sum(map(len, toks)) <= 12:
@@ -95,7 +86,6 @@ if __name__ == '__main__':
         print('g.freq((i,know))=',g.freq(('i','know')))
         print('g.freq((it,use))=',g.freq(('it','use')))
 
-
         # load test cases
         Tests = []
         with open('../test/test.txt','r') as f:
@@ -107,13 +97,6 @@ if __name__ == '__main__':
                     before, after = l.strip().split(' : ')
                     after = re.sub('\s*#.*', '', after.rstrip()) # replace comments
                     Tests.append(([before],[after]))
-
-        def rsort(l, **kw):
-            return sorted(l, reverse=True, **kw)
-        def rsortn(l, n):
-            return rsort(l, key=itemgetter(n))
-        def sortn(l, n):
-            return sorted(l, key=itemgetter(n))
 
         def alternatives(w, p, g, d, t):
             """
@@ -135,6 +118,31 @@ if __name__ == '__main__':
         alt_now = alternatives(w,p,g,None,'now')
         print('alt(now)=',alt_now)
         #assert 'know' in alt_now
+
+        """
+        given a list of tokens search for a list of words with similar pronunciation having g.freq(x) > minfreq
+        """
+        def phonGuess(toks, p, g, minfreq):
+            # create a phentic signature of the ngram
+            phonsig = p.phraseSound(toks)
+            phonwords = list(p.soundsToWords(phonsig))
+            print('phonwords=',phonwords)
+            # remove any words we've never seen
+            phonwords2 = [[[w for w in p if g.freqs(w) > 1] for p in pw] for pw in phonwords]
+            print('phonwords2=',phonwords2)
+            # remove any signatures that contain completely empty items after previous
+            phonwords3 = [pw for pw in phonwords2 if all(pw)]
+            print('phonwords3=',phonwords3)
+            phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
+            print('phonwords4=',phonwords4)
+            # look up ngram popularity, toss anything not more popular than original and sort
+            phonpop = rsort1([(pw, g.freq(pw)) for pw in phonwords4])
+            phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
+            print('phonpop=',phonpop)
+            if phonpop == []:
+                return []
+            best = phonpop[0][0]
+            return [[x] for x in best]
 
         passcnt = 0
         for str,exp in Tests:
@@ -175,7 +183,7 @@ if __name__ == '__main__':
 
                 # find potential alternative tokens for the tokens in the unpopular ngrams
                 alt = dict([(t, alternatives(w,p,g,d,t)) for t in toks])
-                print('alt=',alt)
+                #print('alt=',alt)
 
                 # list all ngrams containing partial matches for our ngram
                 part = g.ngram_like(toks)
@@ -189,27 +197,36 @@ if __name__ == '__main__':
                 part_pop = [[p for p in pa if p in alt[t]] for t,pa in zip(toks, part)]
                 print('part_pop=', part_pop)
 
+                """
+                the code above is our best shot for repairing simple transpositions, etc.
+                for more mangled stuff we try a variety of techniques, falling through to more
+                desperate options should each fail
+                """
                 if any(p == [] for p in part_pop):
-                    """
-                    incomplete intersection. either we just haven't seen it or they've truly mangled it.
-                    """
-                    intertok = inter_token(toks, w.frq, g)
-                    print('intertok=', intertok)
-                    if intertok != []:
-                        part_pop = [(x,) for x in intertok[0]]
-
-                    if intertok == []:
-                        for i in range(len(part_pop)):
-                            if part_pop[i] == []:
-                                dec = [(t, g.freqs(t), levenshtein(t, toks[i]))
-                                        for t in alt[toks[i]] if t != toks[i]]
-                                part_pop[i] = [x[0] for x in sortn(dec, 2)][:3]
-                        print("part_pop'=", part_pop)
+                    phong = phonGuess(toks, p, g, least_common[0][1])
+                    print('phong=',phong)
+                    if phong != []:
+                        part_pop = phong
+                    else:
+                        intertok = inter_token(toks, w.frq, g)
+                        print('intertok=', intertok)
+                        if intertok != []:
+                            part_pop = [(x,) for x in intertok[0]]
+                        else:
+                            for i in range(len(part_pop)):
+                                if part_pop[i] == []:
+                                    dec = [(t, g.freqs(t), levenshtein(t, toks[i]))
+                                            for t in alt[toks[i]] if t != toks[i]]
+                                    part_pop[i] = [x[0] for x in sortn(dec, 2)][:3]
+                    print("part_pop'=", part_pop)
 
                 partial = list(product(*part_pop))
                 print('partial=', partial)
 
                 best = partial
+                # NOTE: i really want izip_longest() but it's not available!
+                if len(best[0]) < len(target_ngram[0]):
+                    best[0] = tuple(list(best[0]) + [''])
                 print('best=',best)
 
                 if best:
@@ -220,30 +237,6 @@ if __name__ == '__main__':
                     print(res)
                     d.applyChanges(proposedChanges)
 
-                """
-                def merge_changes(changes):
-                    revs = []
-                    # isolate only the actual changes
-                    for c in changes:
-                        src,dstl = c
-                        if dstl != []:
-                            dst = dstl[0][0]
-                            for s,d in zip(src,dst):
-                                if s[0] != d and (s,d) not in revs:
-                                    revs.append((s,d))
-                    return revs
-
-                mergedChanges = merge_changes(proposedChanges)
-                print('mergedChanges=', mergedChanges)
-                changePerTok = defaultdict(list)
-                for t,c in mergedChanges:
-                    changePerTok[t].append(c)
-                print('changePerTok=', changePerTok)
-                finalChanges = [(k,v[0]) for k,v in changePerTok.items()]
-                finalChanges = sorted(finalChanges, key=lambda x:x[0][1]) # sort by line
-                finalChanges = sorted(finalChanges, key=lambda x:x[0][2]) # then by index
-                print('finalChanges=', finalChanges)
-                """
                 ngsize -= 1
 
             passcnt += d.lines == exp
