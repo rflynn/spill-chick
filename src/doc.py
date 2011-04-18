@@ -97,6 +97,9 @@ class Doc:
 		cap =  Doc.matchCap(ow, mod)
 		lines[l] = lines[l][:pos] + cap + lines[l][end:]
 		off[l] += len(cap) - len(o)
+		# FIXME: over-simplified; consider multi-token change
+		self.docwords[ow] -= 1
+		self.docwords[mod] += 1
 		return (lines, off)
 
 	"""
