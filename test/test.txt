@@ -1,19 +1,21 @@
 # unit tests
-#i now : i know
+doe sit use machien learning : does it use machine learning
+dose it use machien learning : does it use machine learning
+doze it use machien learning : does it use machine learning
 i no you : i know you
 i didn't no : i didn't know
 
-i now know : i now know
-i know now : i know now
+i now know : i now know # no-op
 
-doe sit use machien learning : does it use machine learning
+#soyouneedtomakethatvariable : so you need to make that variable
 
+you are waisting your time : you are wasting your time
+
+overhere : overhear
+#over hear : overhear # not sure about this one
+over here : over here
 #--end--
 
-turn the know : turn the knob
-overhere : overhear
-over hear : overhear
-over here : over here
 oh de colone : eau de cologne
 #a think so : i think so
 inztrnlazti : international
@@ -21,7 +23,6 @@ inztrnlazti : international
 spillchick : spellcheck
 spill check : spell check
 spill chick : spell check
-
 
 # correct non-fixes
 I love non-sequiturs. : I love non-sequiturs.
@@ -123,7 +124,13 @@ That it. : That's it.
 # missing words
 #I doubt we'll this any time soon. : I doubt we'll do this any time soon.
 #production on hold across the country to allow to watch the match. : put production on hold across the country to allow employees to watch the match.
+#Microsoft is obsessed Websockets : Microsoft is obsessed with Websockets
 
-# unclassified
-Microsoft is obsessed Websockets : Microsoft is obsessed with Websockets
+# splits
+ifit'snotpurethecompilercan'toptimizeitlikeyouwant : if it's not pure the compiler can't optimize it like you want
+
+# phonetic numbers
+Thanks a lot m8. : Thanks a lot mate.
+I h8 it! : I hate it!
+I 8 it! : I ate it!
 
