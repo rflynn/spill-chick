@@ -81,10 +81,14 @@ class Grams:
 
 	"""
 	given ngram of arity n, return all known ngrams containing n-1 matches;
-	that is, where all but one of the tokens don't match.
+	that is, where all but one of the tokens match.
 	this is obviously O(n) and because it is exhaustive it is inefficient.
 	consider eventually either moving ngrams into an sqlite database or a
 	custom in-memory structure in C
+	select x,y,z
+	from ngram3
+	where (x = 'x') + (y = 'y') + (z = 'z') = 2
+	order by freq desc
 	"""
 	def ngram_like(self, ng):
 		if len(ng) <= 1:
