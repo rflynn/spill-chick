@@ -1,9 +1,13 @@
 # unit tests
+
+i no you : i know you
+i didn't no : i didn't know
+a miss steak : a mistake
+i new that! : i knew that!
+
 doe sit use machien learning : does it use machine learning
 dose it use machien learning : does it use machine learning
 doze it use machien learning : does it use machine learning
-i no you : i know you
-i didn't no : i didn't know
 
 i now know : i now know # no-op
 
@@ -14,15 +18,31 @@ you are waisting your time : you are wasting your time
 overhere : overhear
 #over hear : overhear # not sure about this one
 over here : over here
+
 #--end--
 
-oh de colone : eau de cologne
-#a think so : i think so
-inztrnlazti : international
+their is : there is
+their it is : there it is
+
+# this case is important because "i am found" is legitimate (although corpus hasn't seen it).
+# in either case, we need to expand our context to include "am found of" and "found of you"
+# because that will make the correct course of action found->found clear.
+I am found of you : I am fond of you
+
+# i don't think this is in our corpus
+peace of shit : piece of shit
+
+#--end--
 
 spillchick : spellcheck
 spill check : spell check
 spill chick : spell check
+
+
+inztrnlazti : international
+
+oh de colone : eau de cologne
+#a think so : i think so
 
 # correct non-fixes
 I love non-sequiturs. : I love non-sequiturs.
@@ -64,11 +84,6 @@ Gergory : Gregory
 Johsua : Joshua
 
 # misspellings resulting in words
-their is : there is
-their it is : there it is
-i new that! : i knew that!
-peace of shit : piece of shit
-I am found of you : I am fond of you
 Try and fry again : Try and try again
 nope, i was write : nope, i was right # metallic
 in the sample place : in the same place
