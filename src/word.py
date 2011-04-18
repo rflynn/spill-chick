@@ -44,7 +44,10 @@ class Words:
 	# FIXME: bid -> big
 	# FIXME: hungreh -> hungry
 	def similar(self, word):
-		return list(self.known(edits1(word)))
+		e = self.known(edits1(word))
+		if len(word) > 2:
+			e |= self.known_edits2(word)
+		return e
 
 if __name__ == '__main__':
 	pass
