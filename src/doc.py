@@ -92,14 +92,20 @@ class Doc:
 	def applyChange(self, lines, ngpos, mod, off):
 		o,l,pos = ngpos
 		pos += off[l]
+		print('pos=',pos)
 		end = pos + len(o)
 		ow = lines[l][pos:end]
+		if not mod and pos > 0 and lines[l][pos-1] in (' ','\t','\r','\n'):
+			# if we've removed a token and it was preceded by whitespace,
+			# nuke that whitespace as well
+			pos -= 1
 		cap =  Doc.matchCap(ow, mod)
 		lines[l] = lines[l][:pos] + cap + lines[l][end:]
 		off[l] += len(cap) - len(o)
 		# FIXME: over-simplified; consider multi-token change
 		self.docwords[ow] -= 1
-		self.docwords[mod] += 1
+		if mod:
+			self.docwords[mod] += 1
 		return (lines, off)
 
 	"""
