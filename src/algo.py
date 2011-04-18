@@ -98,7 +98,7 @@ def splits(toks, freq, g):
 			sc = freq.get(w, 0)
 			if sc > 0:
 				score[w] = sc
-	print('splits score=',score)
+	print('  splits score=',score)
 
 	# use ngrams to determine which words are seen next to each other;
 	# use that information to more efficiently parse
@@ -114,10 +114,11 @@ def splits(toks, freq, g):
 		sc = g.freq(ng)
 		if sc > 0:
 			ngrams.append(ng)
-	print('splits ngrams=',ngrams)
+	print('  splits ngrams=',ngrams)
 
 	# all of the words that can begin an ngram
 	ng1 = set([x for x,y in ngrams])
+	ng2 = set([y for x,y in ngrams])
 
 	def toks2ngrams(toks, size):
 		size = min(len(toks), size)
@@ -131,7 +132,7 @@ def splits(toks, freq, g):
 		if freq:
 			pop.append((tuple(s), freq))
 	pop = sorted(pop, key=lambda x:x[1], reverse=True)
-	print('splits() pop=',pop)
+	print('  splits() pop=',pop)
 	for p,_ in pop:
 		yield p
 
