@@ -92,7 +92,6 @@ class Doc:
 	def applyChange(self, lines, ngpos, mod, off):
 		o,l,pos = ngpos
 		pos += off[l]
-		print('pos=',pos)
 		end = pos + len(o)
 		ow = lines[l][pos:end]
 		if not mod and pos > 0 and lines[l][pos-1] in (' ','\t','\r','\n'):
