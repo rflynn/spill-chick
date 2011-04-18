@@ -45,6 +45,7 @@ class Grams:
 			None,
 			Counter(),
 			Counter(),
+			Counter(),
 		)
 		if f:
 			self.add(f)
@@ -72,10 +73,11 @@ class Grams:
 		toks = tokenize_no_nl(contents)
 		self.words.addl(toks)
 		self.ngrams[2].update(zip(toks, toks[1:]))
-		for x,y,z in zip(toks, toks[1:], toks[2:]):
-			self.ngrams[3][(x,y,z)] += 1
+		self.ngrams[3].update(zip(toks, toks[1:], toks[2:]))
+		self.ngrams[4].update(zip(toks, toks[1:], toks[2:], toks[3:]))
 		print('      ngrams[2] %8u' % len(self.ngrams[2]))
 		print('      ngrams[3] %8u' % len(self.ngrams[3]))
+		print('      ngrams[4] %8u' % len(self.ngrams[4]))
 
 	def ngram_like(self, ng):
 		print('ngram_like(ng=',ng,')')
