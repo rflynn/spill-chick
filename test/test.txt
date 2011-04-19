@@ -19,15 +19,19 @@ overhere : overhear
 #over hear : overhear # not sure about this one
 over here : over here
 
-#--end--
-
-their is : there is
-their it is : there it is
+in the sample place : in the same place
 
 # this case is important because "i am found" is legitimate (although corpus hasn't seen it).
 # in either case, we need to expand our context to include "am found of" and "found of you"
 # because that will make the correct course of action found->found clear.
 I am found of you : I am fond of you
+
+#--end--
+
+nope, i was write : nope, i was right # metallic
+
+their is : there is
+their it is : there it is
 
 # i don't think this is in our corpus
 peace of shit : piece of shit
@@ -74,8 +78,6 @@ I am very tried : I am very tired
 whatever remains, whoever improbable, must be the truth. : whatever remains, however improbable, must be the truth.
 
 # transcriptions resulting in non-words
-Gtegory : Gregory
-32rd of Auguts : 23rd of August # logically impossible
 Johsia : Joshua
 
 # transpositions resulting in non-words
@@ -85,8 +87,6 @@ Johsua : Joshua
 
 # misspellings resulting in words
 Try and fry again : Try and try again
-nope, i was write : nope, i was right # metallic
-in the sample place : in the same place
 we have a bid backyard : we have a big backyard
 Summer is almost hear. : Summer is almost here.
 a shallow accent angle. : a shallow ascent angle.
@@ -148,4 +148,7 @@ ifit'snotpurethecompilercan'toptimizeitlikeyouwant : if it's not pure the compil
 Thanks a lot m8. : Thanks a lot mate.
 I h8 it! : I hate it!
 I 8 it! : I ate it!
+
+# transpositions resulting in logical impossiblities
+32rd of August : 23rd of August
 
