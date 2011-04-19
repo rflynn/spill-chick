@@ -102,11 +102,13 @@ def phonGuess(toks, p, g, minfreq):
 	best = phonpop[0][0]
 	return [[x] for x in best]
 
-def ngram_suggest(target_ngram, target_freq, d, w, g, p):
+
+def do_suggest(target_ngram, freq, d, w, g, p):
 	"""
 	given an infrequent ngram from a document, attempt to calculate a more frequent one
 	that is similar textually and/or phonetically but is more frequent
 	"""
+
 	toks = [x[0] for x in target_ngram]
 	print('toks=',toks)
 
@@ -132,7 +134,7 @@ def ngram_suggest(target_ngram, target_freq, d, w, g, p):
 	desperate options should each fail
 	"""
 	if any(p == [] for p in part_pop):
-		phong = phonGuess(toks, p, g, target_freq)
+		phong = phonGuess(toks, p, g, freq)
 		print('phong=',phong)
 		if phong != []:
 			part_pop = phong
@@ -154,11 +156,43 @@ def ngram_suggest(target_ngram, target_freq, d, w, g, p):
 
 	best = partial
 	# NOTE: i really want izip_longest() but it's not available!
-	if len(best[0]) < len(target_ngram[0]):
+	if len(best[0]) < len(target_ngram):
 		best[0] = tuple(list(best[0]) + [''])
 	print('best=',best)
 
 	return best
+
+def ngram_suggest(target_ngram, freq, d, w, g, p):
+	"""
+	we calculate ngram context and collect solutions for each context
+	permutation containing the target. then merge these suggestions
+	into a cohesive, best suggestion.
+		    c d e
+                a b c d e f g
+	given ngram (c,d,e), calculate context and solve:
+	[S(a,b,c), S(b,c,d), S(c,d,e), S(d,e,f), S(e,f,g)]
+	"""
+
+	print('target_ngram=', target_ngram)
+
+	tlen = len(target_ngram)
+
+	context = list(d.ngram_context(target_ngram, tlen))
+	print('context=', context)
+
+	context_ngrams = [tuple(context[i:i+tlen]) for i in range(tlen)]
+	print('context_ngrams=', context_ngrams)
+
+	sugg = []
+	for ng in context_ngrams:
+		sugg.append((ng, do_suggest(ng, g.freq(ng), d, w, g, p)))
+
+	print('sugg=', sugg)
+	for ng,su in sugg:
+		for s in su:
+			print('%s%s %u' % (' ' * ng[0][3], ' '.join(s), g.freq(s)))
+	return do_suggest(target_ngram, freq, d, w, g, p)
+
 
 def check(str, w, p, g):
 	"""
@@ -184,21 +218,16 @@ def check(str, w, p, g):
 
 	# order n-grams by unpopularity
 	ngsize = min(3, d.totalTokens())
-	while ngsize >= min(3, d.totalTokens()):
-		ngsize = min(3, d.totalTokens())
-		print('ngsize=',ngsize)
-		print('ngram(1) freq=',list(d.ngramfreq(g,1)))
+	print('ngsize=',ngsize)
+	print('ngram(1) freq=',list(d.ngramfreq(g,1)))
 
-		# locate the least-common ngrams
-		least_common = sortn(d.ngramfreq(g, ngsize), 1)
-		print('least_common=', least_common[:20])
-		if least_common == []:
-			break
-		target_ngram,target_freq = least_common[0]
-		print('target_ngram=',target_ngram)
+	# locate the least-common ngrams
+	least_common = sortn(d.ngramfreq(g, ngsize), 1)
+	print('least_common=', least_common[:20])
 
+	while least_common:
+		target_ngram,target_freq = least_common.pop(0)
 		best = ngram_suggest(target_ngram, target_freq, d, w, g, p)
-
 		if best:
 			# present our potential revisions
 			proposedChanges = list(zip(target_ngram, best[0]))
@@ -206,7 +235,11 @@ def check(str, w, p, g):
 			res = d.demoChanges(proposedChanges)
 			print(res)
 			d.applyChanges(proposedChanges)
-		ngsize -= 1
+		# FIXME: save progress
+		#least_common = sortn(d.ngramfreq(g, ngsize), 1)
+		least_common = []
+		print('least_common=', least_common[:20])
+
 	return d.lines
 
 def load_tests():
