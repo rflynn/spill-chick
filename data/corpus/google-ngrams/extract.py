@@ -20,11 +20,9 @@ def getid(word):
 		Ids[w] = cnt
 		return cnt
 
-wtf = list(os.walk('.'))
-dirpath, dirnames, filenames = wtf[0]
-for filename in sorted(filenames):
-	if not filename.endswith('-2008.list.gz'):
-		continue
+from glob import glob
+
+for filename in sorted(glob('*-2008.list.gz')):
 	dst = str.replace(filename,'list.gz','ids.gz')
 	if os.path.exists(dst):
 		continue
