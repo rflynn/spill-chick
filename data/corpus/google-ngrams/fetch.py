@@ -46,8 +46,8 @@ def delete(filename):
 		pass
 
 def urls():
-	for n in range(1, 200):
-		yield 'http://commondatastorage.googleapis.com/books/ngrams/books/googlebooks-eng-all-3gram-20090715-%u.csv.zip' % n
+	for n in range(0, 200):
+		yield 'http://commondatastorage.googleapis.com/books/ngrams/books/googlebooks-eng-all-3gram-20090715-' + str(n) + '.csv.zip'
 
 def url2filename(url):
 	return url[url.rfind('/')+1:]
@@ -73,4 +73,5 @@ if __name__ == '__main__':
 				print(e.reason)
 				print('continuing...')
 			finally:
-				delete(dst) # delete partial
+				delete(dst) # delete either partial and or complete
+
