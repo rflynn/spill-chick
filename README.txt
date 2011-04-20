@@ -1,20 +1,26 @@
 
 Author: Ryan Flynn <parseerror+spill-chick@gmail.com>
 
-spill-chick is a statistical spelling/grammar checker inspired by
-'Ode To My Spell Checker'.
+spill-chick is a context-sensitive spelling/grammar/language checker designed
+to recognize spelling and grammar errors which pass existing checkers but
+result in bogus text.
 
 There are all sorts of typing errors one can make.
 
-Most cannot be caught with traditional spelling/grammar checkers.
-
-Some examples:
-	misspelling producing a valid word ..... I hop my code works
+	transcription error .................... speling is hard
+	homophone error ........................ peace of crap
+	transposition error .................... causal Friday
+	grammatical error ...................... your right!
 	word merging/splitting ................. always miss spelling stuff
-	phonetic mix-up ........................ nobody likes miss steaks
 	botched idioms ......................... for all intensive purposes
 	word omission .......................... oops, I the word
 	inconsistency of proper nouns .......... Julius Seizure
 
-Requirements: python3
+It is inspired by 'Ode To My Spell Checker', which contains no spelling
+errors, is perfectly readable and yet is very incorrect. It begins:
+
+	Eye halve a spelling chequer
+	It came with my pea sea
+	It plainly marques four my revue
+	Miss steaks eye kin knot sea.
 
