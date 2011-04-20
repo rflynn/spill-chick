@@ -1,5 +1,25 @@
 
-Goal: maximize self-consistency of a corpus of documents
+Goal: Maximize consistency of the language within a document.
+
+To do so we use an n-gram-based language model.
+
+We don't want to be too heavy-handed in our language model though;
+we want to incorporate local language use as well.
+
+We begin with a pre-fabricated sourced from an external "global" corpus,
+in this case we use Google Books' 3-ary n-grams.
+
+Upon initialization we incorporate the "local" corpus of documents into our
+language model, likely by parsing documents in the current and parent folders.
+
+It is this local model we should use first against new documents. This
+allows our checker to tailor its behavior to its environment, whether the
+documents are legal documents, school book reports, bad sci-fi novels, etc.
+
+http://en.wikipedia.org/wiki/Text_corpus
+http://en.wikipedia.org/wiki/Language_model#N-gram_models
+http://en.wikipedia.org/wiki/N-gram
+http://ngrams.googlelabs.com/datasets
 
 overhere -> overhear (x -> x')
 over,here -> over,here (x,y -> x,y)
