@@ -45,6 +45,13 @@ class Phon:
 		return [w for w,fr in sorted(l, key=lambda x:x[1], reverse=True)]
 
 	def phraseSound(self, toks):
+		"""
+		given a list of tokens produce a normalize list of their component sound
+		an unknown token generates None
+		TODO: ideally we would be able to "guess" the sound of unknown words.
+		this would be a huge improvement!
+		given 'waisting' we should be able to break it into 'waist' 'ing'
+		"""
 		def head(l):
 			return l[0] if l else None
 		s = [head(self.word.get(t,[''])) for t in toks]
