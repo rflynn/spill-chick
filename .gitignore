@@ -1,4 +1,6 @@
 *.swp
 *.pyc
 src/test.prof
-data/corpus/*
+data/corpus/*.gz
+data/cmudict/cmudict.0.7a
+misc/
