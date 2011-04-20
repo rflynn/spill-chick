@@ -21,12 +21,18 @@ over here : over here
 
 in the sample place : in the same place
 
+bridge the gas : bridge the gap
+
 # this case is important because "i am found" is legitimate (although corpus hasn't seen it).
 # in either case, we need to expand our context to include "am found of" and "found of you"
 # because that will make the correct course of action found->found clear.
 I am found of you : I am fond of you
 
 #--end--
+
+untied stats : united states
+
+Their coming too sea if its reel. : They're coming to see if it's reel.
 
 nope, i was write : nope, i was right # metallic
 
@@ -43,21 +49,15 @@ spill check : spell check
 spill chick : spell check
 
 
-inztrnlazti : international
-
-oh de colone : eau de cologne
-#a think so : i think so
-
-# correct non-fixes
-I love non-sequiturs. : I love non-sequiturs.
-
 # misspellings: non-words
 naieve : naive
 #bazillion : billion
 #bajillion : billion
+inztrnlazti : international
 joyd ivision : joy division
 Insturctions: : Instructions:
 descently well : decently well
+I'm leary of it : I'm leery of it
 a pthon library : a python library
 #santimoniousness : sanctimoniousness 
 integeter division : integer division
@@ -76,6 +76,13 @@ I still have a double cheese burger in the refridgerator : I still have a double
 The dog was dense : The fog was dense
 I am very tried : I am very tired
 whatever remains, whoever improbable, must be the truth. : whatever remains, however improbable, must be the truth.
+It it did, the future would undoubtedly be changed in some minor respects. : If it did, the future would undoubtedly be changed in some minor respects. # Foundation, Isaac Asimov p. 33
+
+# correct non-fixes
+I love non-sequiturs. : I love non-sequiturs.
+
+# misspellings resulting in words
+your right dude. : you're right dude.
 
 # transcriptions resulting in non-words
 Johsia : Joshua
@@ -105,21 +112,20 @@ never cry wool : never cry wolf
 funky farm : funny farm
 scotch free : scot-free
 win or loose : win or lose
+oh de colone : eau de cologne
 worth it's salt : worth its salt
 garden of eatin' : garden of eden
-pushing up lazies : pushing up daisies
+pushing up days : pushing up daisies
 #two in the hand is worth one in the bush : one in the hand is worth two in the bush
 
-#It it did, the future would undoubtedly be changed in some minor respects. : If it did, the future would undoubtedly be changed in some minor respects. # Foundation, Isaac Asimov p. 33
 
 # phonetic errors
 oic : oh i see
 f u c k : fuck
 hell-o : hello
-orly : oh really
 o i c : oh i see
+orly : oh really
 faux king hill : fucking hell
-your right dude. : you're right dude.
 in the sample place : in the same place
 hungreh. wants soo shee : hungry. want sushi
 goan jump off a bridge : go and jump off a bridge
@@ -152,3 +158,8 @@ I 8 it! : I ate it!
 # transpositions resulting in logical impossiblities
 32rd of August : 23rd of August
 
+# unclassified real-world
+#A group of 21 volunteers from Tokyo and Saitama brought Sunday 2,000 meals for about over 500 evacuees at the shelter.
+#Use Reddit to decide what to tool use. : Use Reddit to decide what tool to use.
+# Math is not sexy. Statistics are not sext. : Math is not sexy. Statistics are not sexy.
+# best font for coding : best font for coding
