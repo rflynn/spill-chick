@@ -38,8 +38,8 @@ for filename in sorted(filenames):
 	print('break')
 	break
 
-with os.popen('gzip -c - > ids.csv.gz', 'wb') as gz:
+with os.popen('gzip -c - > word.csv.gz', 'wb') as gz:
 	Ids = sorted(Ids.items(), key=lambda x:x[1])
 	for word,wid in Ids:
-		gz.write('%s,%u\n' % (word, wid))
+		gz.write('%s,%s\n' % (wid, word))
 

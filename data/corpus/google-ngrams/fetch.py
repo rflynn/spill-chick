@@ -46,7 +46,7 @@ def delete(filename):
 		pass
 
 def urls():
-	for n in range(5, 200):
+	for n in range(1, 200):
 		yield 'http://commondatastorage.googleapis.com/books/ngrams/books/googlebooks-eng-all-3gram-20090715-%u.csv.zip' % n
 
 def url2filename(url):
