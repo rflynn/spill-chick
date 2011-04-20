@@ -12,6 +12,7 @@ from operator import itemgetter
 from itertools import takewhile, product, cycle, chain
 from collections import defaultdict
 import bz2, sys, re
+import copy
 from word import Words
 from phon import Phon
 from gram import Grams
@@ -85,25 +86,28 @@ def phonGuess(toks, p, g, minfreq):
 	phonsig = p.phraseSound(toks)
 	phonwords = list(p.soundsToWords(phonsig))
 	print('phonwords=',phonwords)
-	# remove any words we've never seen
-	phonwords2 = [[[w for w in p if g.freqs(w) > 1] for p in pw] for pw in phonwords]
-	print('phonwords2=',phonwords2)
-	# remove any signatures that contain completely empty items after previous
-	phonwords3 = [pw for pw in phonwords2 if all(pw)]
-	print('phonwords3=',phonwords3)
-	phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
-	print('phonwords4=',phonwords4)
-	# look up ngram popularity, toss anything not more popular than original and sort
-	phonpop = rsort1([(pw, g.freq(pw)) for pw in phonwords4])
-	phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
-	print('phonpop=',phonpop)
+	if phonwords == [[]]:
+		phonpop = []
+	else:
+		# remove any words we've never seen
+		phonwords2 = [[[w for w in p if g.freqs(w) > 1] for p in pw] for pw in phonwords]
+		print('phonwords2=',phonwords2)
+		# remove any signatures that contain completely empty items after previous
+		phonwords3 = [pw for pw in phonwords2 if all(pw)]
+		print('phonwords3=',phonwords3)
+		phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
+		print('phonwords4=',phonwords4)
+		# look up ngram popularity, toss anything not more popular than original and sort
+		phonpop = rsort1([(pw, g.freq(pw)) for pw in phonwords4])
+		phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
+		print('phonpop=',phonpop)
 	if phonpop == []:
 		return []
 	best = phonpop[0][0]
 	return [[x] for x in best]
 
 
-def do_suggest(target_ngram, freq, d, w, g, p):
+def do_suggest(target_ngram, freq, ctx, d, w, g, p):
 	"""
 	given an infrequent ngram from a document, attempt to calculate a more frequent one
 	that is similar textually and/or phonetically but is more frequent
@@ -130,8 +134,9 @@ def do_suggest(target_ngram, freq, d, w, g, p):
 
 	"""
 	the code above is our best shot for repairing simple transpositions, etc.
-	for more mangled stuff we try a variety of techniques, falling through to more
-	desperate options should each fail
+	however, if any of the tokens do not intersect part & alt...
+	for more mangled stuff we try a variety of techniques,
+	falling through to more desperate options should each fail
 	"""
 	if any(p == [] for p in part_pop):
 		phong = phonGuess(toks, p, g, freq)
@@ -147,7 +152,7 @@ def do_suggest(target_ngram, freq, d, w, g, p):
 				for i in range(len(part_pop)):
 					if part_pop[i] == []:
 						dec = [(t, g.freqs(t), levenshtein(t, toks[i]))
-								for t in alt[toks[i]] if t != toks[i]]
+							for t in alt[toks[i]] if t != toks[i]]
 						part_pop[i] = [x[0] for x in sortn(dec, 2)][:3]
 		print("part_pop'=", part_pop)
 
@@ -155,10 +160,20 @@ def do_suggest(target_ngram, freq, d, w, g, p):
 	print('partial=', partial)
 
 	best = partial
+
 	# NOTE: i really want izip_longest() but it's not available!
 	if len(best[0]) < len(target_ngram):
 		best[0] = tuple(list(best[0]) + [''])
 	print('best=',best)
+
+	def canon(ng):
+		if ng[-1] == '':
+			return tuple(list(ng)[:-1])
+		return ng
+
+	# if our best suggestions are no more frequent than what we started with, give up!
+	if max(g.freq(canon(b)) for b in best) <= freq:
+		best = []
 
 	return best
 
@@ -179,19 +194,51 @@ def ngram_suggest(target_ngram, freq, d, w, g, p):
 
 	context = list(d.ngram_context(target_ngram, tlen))
 	print('context=', context)
+	clen = len(context)
 
-	context_ngrams = [tuple(context[i:i+tlen]) for i in range(tlen)]
-	print('context_ngrams=', context_ngrams)
+	context_ngrams = [tuple(context[i:i+tlen]) for i in range(clen-tlen)]
 
-	sugg = []
-	for ng in context_ngrams:
-		sugg.append((ng, do_suggest(ng, g.freq(ng), d, w, g, p)))
+	# gather suggestions for each ngram overlapping target_ngram
+	sugg = [(ng, do_suggest(ng, g.freq(ng), context_ngrams, d, w, g, p))
+		for ng in context_ngrams]
 
 	print('sugg=', sugg)
 	for ng,su in sugg:
 		for s in su:
 			print('%s%s %u' % (' ' * ng[0][3], ' '.join(s), g.freq(s)))
-	return do_suggest(target_ngram, freq, d, w, g, p)
+
+	def apply_suggest(ctx, ng, s):
+		# replace 'ng' slice of 'ctx' with contents of text-only ngram 's'
+		ctx = copy.copy(ctx)
+		index = ctx.index(ng[0])
+		for i in range(len(ng)):
+			c = ctx[index+i]
+			ctx[index+i] = (s[i], c[1], c[2], c[3])
+		return (' '.join([c[0] for c in ctx]), ng, s)
+
+	def realize_suggest(ctx, sugg):
+		"""
+		ctx is a list of positional ngrams; our 'target'
+		sugg is a list of changesets.
+		return map ctx x sugg
+		"""
+		return [[apply_suggest(ctx, ng, s) for s in su] for ng,su in sugg]
+
+	# merge suggestions based on what they change
+	realized = realize_suggest(context, sugg)
+	print('realized=', realized)
+	realcnt = defaultdict(int)
+	for real in realized:
+		for sctx,ng,s in real:
+			realcnt[sctx] += 1 + g.freq(s)
+			print(sctx)
+	print('realcnt=',realcnt)
+
+	# calculate the most-recommended change
+
+	# sort based on frequency, then on order (best first)
+
+	return do_suggest(target_ngram, freq, context_ngrams, d, w, g, p)
 
 
 def check(str, w, p, g):
