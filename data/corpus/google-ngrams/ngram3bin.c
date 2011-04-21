@@ -70,31 +70,19 @@ ngram3 * ngram3_find_spacefor1more(ngram3 *ng, unsigned long cnt)
  */
 struct ngramword ngramword_load(const struct ngram3map m)
 {
-	struct ngramword w;
-#	pragma pack(push, 1)
-	struct cursor {
-		uint32_t id;
-		uint32_t len;
-	}
-	*cursor = m.m,
-	*end = (void *)((char *)m.m + m.size);
-#	pragma pack(pop)
+	ngramwordcursor *cursor = m.m;
+	ngramwordcursor *end = (void *)((char *)m.m + m.size);
 	unsigned long long maxpossible = m.size / 6 + 1;
+	struct ngramword w;
 	w.word = calloc(maxpossible, sizeof *w.word);
 	w.cnt = 0;
 	while (cursor < end)
 	{
-		const char *str = (void *)((char *)cursor + sizeof *cursor);
+		const char *str = ngramwordcursor_str(cursor);
 		w.word[cursor->id].len = cursor->len;
 		w.word[cursor->id].str = str;
-#if 0
-		if (w.cnt < 10)
-			printf("cursor(id=%lu len=%u) buf=\"%.*s\"\n",
-				(unsigned long)cursor->id, (unsigned)cursor->len,
-				(unsigned)cursor->len, w.word[cursor->id].str);
-#endif
-		cursor = (void *)((char *)str + (cursor->len + (1 + (cursor->len+1) % 4)));
 		w.cnt++;
+		cursor = ngramwordcursor_next(cursor);
 	}
 	w.word = realloc(w.word, w.cnt * sizeof *w.word);
 	return w;

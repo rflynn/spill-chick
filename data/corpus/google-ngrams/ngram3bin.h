@@ -26,6 +26,17 @@ struct ngramword
 };
 
 #pragma pack(push, 1)
+struct ngramwordcursor {
+	uint32_t id;
+	uint32_t len;
+};
+#pragma pack(pop)
+typedef struct ngramwordcursor ngramwordcursor;
+
+#define ngramwordcursor_str(cur)  ((char *)(cur) + sizeof *(cur))
+#define ngramwordcursor_next(cur) (void *)((char *)(ngramwordcursor_str(cur) + ((cur)->len + (1 + ((cur)->len+1) % 4))))
+
+#pragma pack(push, 1)
 typedef struct
 {
 	uint32_t id[3],
