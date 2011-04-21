@@ -1,14 +1,18 @@
 """
+How To Use
+
 $ python setup.py build
 $ sudo python setup.py install
-$ ./test.py
+$ ./testbin.py
 
 $ python3 -i
 
-
 >>> from ngram3bin import ngram3bin
->>> ng = ngram3bin('ngram3.bin')
+>>> ng = ngram3bin('word.bin','ngram3.bin')
+>>> [ng.word2id(w) for w in ['activities','as','buddhist']]
+>>> [ng.id2word(ng.word2id(w)) for w in ['activities','as','buddhist']]
 >>> ng.find(5,6,7)
+>>> ng.find(*[ng.word2id(w) for w in ['activities','as','buddhist']])
 
 """
 
