@@ -1,3 +1,4 @@
 *.list.gz
 *.csv.zip
 *.csv
+*-2008.ids.gz
