@@ -14,6 +14,7 @@ def log(what, msg):
 import urllib2
 
 def download(url, dst):
+	log(dst, 'download')
 	CHUNK = 2 * 1024 * 1024
 	req = urllib2.urlopen(url)
 	with open(dst, 'wb') as fp:
@@ -27,6 +28,7 @@ import re, collections
 import os
 
 def extract(filename, gzfile):
+	log(filename, 'extract')
 	CHUNK = 8 * 1024 * 1024
 	with os.popen('unzip -p ' + filename) as fd:
 		d = {}
@@ -40,6 +42,7 @@ def extract(filename, gzfile):
 				out.write('%s\t%s\n' % (k, d[k]))
 
 def delete(filename):
+	log(filename, 'delete')
 	try:
 		os.remove(filename)
 	except:
@@ -64,11 +67,8 @@ if __name__ == '__main__':
 				dstgz = filename2gz(dst)
 				if not os.path.exists(dstgz):
 					if not os.path.exists(dst):
-						log(url, 'download')
 						download(url, dst)
-					log(dst, 'extract')
 					extract(dst, dstgz)
-					log(dst, 'delete')
 			except urllib2.HTTPError, e:
 				print(e.reason)
 				print('continuing...')
