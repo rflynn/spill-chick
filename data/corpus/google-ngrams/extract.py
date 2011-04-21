@@ -16,25 +16,23 @@ def getid(word):
 	try:
 		return Ids[w]
 	except:
-		cnt = len(Ids)+1
+		cnt = len(Ids)
 		Ids[w] = cnt
 		return cnt
 
 from glob import glob
 
 for filename in sorted(glob('*-2008.list.gz')):
+	print filename
 	dst = str.replace(filename,'list.gz','ids.gz')
 	if os.path.exists(dst):
 		continue
-	print('filename=',filename)
 	with os.popen('gunzip -dc ' + filename, 'r') as gunzip:
 		contents = '\n' + gunzip.read()
 	with os.popen('gzip -c - > ' + dst, 'wb') as gz:
 		for x,y,z,cnt in re.findall('\n([^\d\W]+) ([^\d\W]+) ([^\d\W]+)\t(\d+)', contents):
 			xid, yid, zid = getid(x), getid(y), getid(z)
 			gz.write('%u,%u,%u,%u\n' % (xid, yid, zid, int(cnt)))
-	print('break')
-	break
 
 with os.popen('gzip -c - > word.csv.gz', 'wb') as gz:
 	Ids = sorted(Ids.items(), key=lambda x:x[1])
