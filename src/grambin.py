@@ -11,7 +11,7 @@ Grams-interface to our binary ngram database
 class GramsBin:
 
 	def __init__(self, wordpath, ngrampath):
-		self.ng = ngram3bin(wordpath,ngrampath)
+		self.ng = ngram3bin(wordpath, ngrampath)
 
 	def freq(self, ng):
 		#print('freq()=',ng)
@@ -21,8 +21,11 @@ class GramsBin:
 				self.ng.word2id(ng[1]),
 				self.ng.word2id(ng[2]) )
 			fr = self.ng.freq(*ids)
-			print('freq(',ng,')=',fr)
 			return fr
+		elif l == 2:
+			ids = ( self.ng.word2id(ng[0]),
+				self.ng.word2id(ng[1]) )
+			fr = self.ng.freq(*ids)
 		elif l == 1:
 			return self.ng.wordfreq(ng[0])
 		#print('freq len=',l)
