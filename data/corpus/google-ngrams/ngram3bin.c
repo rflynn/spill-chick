@@ -182,9 +182,9 @@ void ngramword_totalfreqs(struct ngramword w, const struct ngram3map *m)
 	const ngram3 *end = (ngram3*)((char*)cur + m->size);
 	while (cur < end)
 	{
-		if (cur->id[0] < w.cnt) w.word[cur->id[0]].freq++;
-		if (cur->id[1] < w.cnt) w.word[cur->id[1]].freq++;
-		if (cur->id[2] < w.cnt) w.word[cur->id[2]].freq++;
+		if (cur->id[0] < w.cnt) w.word[cur->id[0]].freq += cur->freq;
+		if (cur->id[1] < w.cnt) w.word[cur->id[1]].freq += cur->freq;
+		if (cur->id[2] < w.cnt) w.word[cur->id[2]].freq += cur->freq;
 		cur++;
 	}
 }
