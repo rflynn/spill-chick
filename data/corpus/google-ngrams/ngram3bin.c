@@ -72,7 +72,7 @@ struct ngramword ngramword_load(const struct ngram3map m)
 {
 	ngramwordcursor *cursor = m.m;
 	ngramwordcursor *end = (void *)((char *)m.m + m.size);
-	unsigned long long maxpossible = m.size / 6 + 1;
+	unsigned long maxpossible = m.size / 6 + 1;
 	struct ngramword w;
 	w.word = calloc(maxpossible, sizeof *w.word);
 	w.cnt = 0;
@@ -119,20 +119,38 @@ void ngramword_fini(struct ngramword w)
 }
 
 /*
+ * 
+ */
+unsigned long ngram3bin_freq(ngram3 find, const struct ngram3map *m)
+{
+	unsigned long freq = 0;
+	ngram3 *cur = m->m;
+	const ngram3 *end = (ngram3 *)((char *)cur + m->size);
+	while (cur < end)
+	{
+		if (cur->id[0] == find.id[0] &&
+		    cur->id[1] == find.id[1] &&
+		    cur->id[2] == find.id[2])
+		{
+			freq = cur->freq;
+			break;
+		}
+		cur++;
+	}
+	return freq;
+}
+
+/*
  * given an id 3-gram (x,y,z) and a list of ngram frequencies, count the number
  * of matches of (_,y,z) or (x,_,z) or (x,y,_)
  */
-ngram3 * ngram3bin_find(ngram3 find, const struct ngram3map m)
+ngram3 * ngram3bin_like(ngram3 find, const struct ngram3map *m)
 {
 	unsigned long ngcnt = 0;
-	const ngram3 *end = (ngram3*)((char*)m.m + m.size);
-	ngram3 *cur = m.m;
+	ngram3 *cur = m->m;
+	const ngram3 *end = (ngram3*)((char*)cur + m->size);
 	ngram3 *res = NULL;
-	/* convert ids to little endian */
-	find.id[0] = htonl(htonl(find.id[0]));
-	find.id[1] = htonl(htonl(find.id[1]));
-	find.id[2] = htonl(htonl(find.id[2]));
-	while (cur != end)
+	while (cur < end)
 	{
 		if (((cur->id[0] == find.id[0]) +
 		     (cur->id[1] == find.id[1]) +
@@ -153,6 +171,25 @@ ngram3 * ngram3bin_find(ngram3 find, const struct ngram3map m)
 			res[ngcnt].freq = 0; // sentinel
 	}
 	return res;
+}
+
+/*
+ * sum ngram3 word frequencies in w.word[n].freq
+ */
+void ngramword_totalfreqs(struct ngramword w, const struct ngram3map *m)
+{
+	ngram3 *cur = m->m;
+	const ngram3 *end = (ngram3*)((char*)cur + m->size);
+	while (cur < end)
+	{
+		if (cur->id[0] < w.cnt)
+			w.word[cur->id[0]].freq++;
+		if (cur->id[1] < w.cnt)
+			w.word[cur->id[1]].freq++;
+		if (cur->id[2] < w.cnt)
+			w.word[cur->id[2]].freq++;
+		cur++;
+	}
 }
 
 void ngram3bin_fini(struct ngram3map m)
