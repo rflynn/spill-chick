@@ -266,11 +266,16 @@ static int ngram3bin_print(PyObject *self, FILE *fp, int flags)
 static PyObject *ngram3binpy_word2id(PyObject *self, PyObject *args)
 {
 	PyObject *res = NULL;
-	PyObject *key = PyUnicode_AsUTF8String(PyTuple_GetItem(args, 0));
-	if (key)
+	Py_UNICODE *u = NULL;
+	int l = 0;
+	if (PyArg_ParseTuple(args, "u#", &u, &l))
 	{
-		ngram3bin *obj = (ngram3bin *)self;
-		res = PyDict_GetItem(obj->worddict, key);
+		PyObject *key = PyUnicode_EncodeUTF8(u, l, NULL);
+		if (key)
+		{
+			ngram3bin *obj = (ngram3bin *)self;
+			res = PyDict_GetItem(obj->worddict, key);
+		}
 	}
 	if (!res)
 		res = PyLong_FromLong(0);
@@ -318,18 +323,23 @@ static PyObject *ngram3binpy_wordfreq(PyObject *self, PyObject *args)
 {
 	PyObject *res = NULL;
 	ngram3bin *obj = (ngram3bin *)self;
-	PyObject *key = PyUnicode_AsUTF8String(PyTuple_GetItem(args, 0));
-	if (key)
+	unsigned long id = 0;
+	Py_UNICODE *u = NULL;
+	int l = 0;
+	if (PyArg_ParseTuple(args, "u#", &u, &l))
 	{
-		unsigned long id = 0;
-		res = PyDict_GetItem(obj->worddict, key);
-		if (res)
-			id = PyLong_AsLong(res);
-		if (id < obj->word.cnt)
-			res = PyLong_FromUnsignedLong(obj->word.word[id].freq);
-		else
-			res = PyLong_FromLong(0);
+		PyObject *key = PyUnicode_EncodeUTF8(u, l, NULL);
+		if (key)
+		{
+			res = PyDict_GetItem(obj->worddict, key);
+			if (res)
+				id = PyLong_AsLong(res);
+		}
 	}
+	if (id < obj->word.cnt)
+		res = PyLong_FromUnsignedLong(obj->word.word[id].freq);
+	else
+		res = PyLong_FromLong(0);
 	Py_INCREF(res);
 	return res;
 }
