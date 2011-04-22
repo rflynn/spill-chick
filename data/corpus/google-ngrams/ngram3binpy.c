@@ -237,7 +237,7 @@ static PyObject * ngram3bin_new(PyObject *self, PyObject *args)
 		obj->word    = ngramword_load(obj->wordmap);
 		obj->ngramap = ngram3bin_init(ngrampath);
 		obj->worddict = worddict_new(obj->word);
-		ngramword_totalfreqs(obj->word, &obj->wordmap);
+		ngramword_totalfreqs(obj->word, &obj->ngramap);
 		Py_INCREF(obj->worddict);
 	}
 	Py_INCREF(obj);
