@@ -262,15 +262,8 @@ static PyObject *ngram3binpy_word2id(PyObject *self, PyObject *args)
 	ngram3bin *obj = (ngram3bin *)self;
 	PyObject *key = PyUnicode_AsUTF8String(PyTuple_GetItem(args, 0));
 	res = PyDict_GetItem(obj->worddict, key);
-#if 0
-	char *s = NULL;
-	unsigned long l = 0;
-	if (PyArg_ParseTuple(args, "s#", &s, &l))
-	{
-		unsigned long id = ngramword_word2id(s, l, obj->word);
-		res = PyLong_FromUnsignedLong(id);
-	}
-#endif
+	if (!res)
+		res = PyLong_FromLong(0);
 	return res;
 }
 
