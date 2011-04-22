@@ -15,21 +15,12 @@ class GramsBin:
 
 	def freq(self, ng):
 		#print('freq()=',ng)
-		l = len(ng)
-		if l == 3:
-			ids = ( self.ng.word2id(ng[0]),
-				self.ng.word2id(ng[1]),
-				self.ng.word2id(ng[2]) )
+		if len(ng) > 1:
+			ids = [ self.ng.word2id(w) for w in ng ]
 			fr = self.ng.freq(*ids)
 			return fr
-		elif l == 2:
-			ids = ( self.ng.word2id(ng[0]),
-				self.ng.word2id(ng[1]) )
-			fr = self.ng.freq(*ids)
-		elif l == 1:
+		else:
 			return self.ng.wordfreq(ng[0])
-		#print('freq len=',l)
-		return 0
 
 	def freqs(self, s):
 		#print('freq(s)=',s)
