@@ -38,6 +38,7 @@ static PyObject *ngram3bin_new      (PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_word2id(PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_id2word(PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_id2freq(PyObject *self, PyObject *args);
+static PyObject *ngram3binpy_wordfreq(PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_freq   (PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_like   (PyObject *self, PyObject *args);
 
@@ -45,6 +46,7 @@ static struct PyMethodDef ngram3bin_Methods[] = {
 	{ "word2id",	(PyCFunction) ngram3binpy_word2id,	METH_VARARGS,	NULL },
 	{ "id2word",	(PyCFunction) ngram3binpy_id2word,	METH_VARARGS,	NULL },
 	{ "id2freq",	(PyCFunction) ngram3binpy_id2freq,	METH_VARARGS,	NULL },
+	{ "wordfreq",	(PyCFunction) ngram3binpy_wordfreq,	METH_VARARGS,	NULL },
 	{ "freq",	(PyCFunction) ngram3binpy_freq,		METH_VARARGS,	NULL },
 	{ "like",	(PyCFunction) ngram3binpy_like,		METH_VARARGS,	NULL },
 	{ "ngram3bin",	(PyCFunction) ngram3bin_new,		METH_VARARGS,	NULL },
@@ -306,6 +308,29 @@ static PyObject *ngram3binpy_id2freq(PyObject *self, PyObject *args)
 			res = PyLong_FromLong(0);
 		Py_INCREF(res);
 	}
+	return res;
+}
+
+/*
+ * equivalent of id2freq(word2id(word))
+ */
+static PyObject *ngram3binpy_wordfreq(PyObject *self, PyObject *args)
+{
+	PyObject *res = NULL;
+	ngram3bin *obj = (ngram3bin *)self;
+	PyObject *key = PyUnicode_AsUTF8String(PyTuple_GetItem(args, 0));
+	if (key)
+	{
+		unsigned long id = 0;
+		res = PyDict_GetItem(obj->worddict, key);
+		if (res)
+			id = PyLong_AsLong(res);
+		if (id < obj->word.cnt)
+			res = PyLong_FromUnsignedLong(obj->word.word[id].freq);
+		else
+			res = PyLong_FromLong(0);
+	}
+	Py_INCREF(res);
 	return res;
 }
 
