@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+
 """
 extract.py generated:
 	word.csv.gz: master word file (word id,word)
@@ -21,7 +23,7 @@ disable any notion of safety and don't create table indexes until they are built
 
 """
 yup, it turns out that sqlite just has too much per-row overhead.
-the database, sans indexes, ended up being larger than ~4GB csv file
+the database, sans indexes, ended up being larger than ~4GB csv file!
 instead, use a custom binary format
 """
 
@@ -31,28 +33,34 @@ with os.popen('gzip -dc word.csv.gz', 'r') as gz:
 		for line in gz:
 			wid,word = line.rstrip().split(',')
 			wid = int(wid)
-			# FIXME: if our ids were perfectly contiguous we wouldn't need to explicitly include them
 			bword = bytes(word, 'utf-8')
 			wlen = len(bword)
 			# pad bword with enough \0 to make next string start with alignment=4
 			bword += b'\0' * (1 + ((len(bword)+1) % 4))
 			"""
-			write [uint32_t id][uint32_t len][word ... \0\0?\0?\0?]
+			write [uint32_t len][word ... \0\0?\0?\0?]
 			we use fields that are multiples of 4 bytes to keep the &word[0] 32-bit aligned
 			which improves read performance
 			"""
-			bin.write(pack('<ii', wid, wlen) + bword)
+			bin.write(pack('<i', wlen) + bword)
 
 # note: following takes ~35 minutes to process 4GB/~200M UTF-8 lines into ~100M binary on my machine
 # note: port following the C
 
-MinFreq = 100
+if not os.path.exists('2008-ngram3-ids.csv'):
+	print('*-2008.ids.gz -> 2008-ngram3-ids.csv')
+	os.system('gzip -dc *-2008.ids.gz > 2008-ngram3-ids.csv')
+	print('  done.')
+
+# NOTE: MinFreq = 100 yields 100MB, but the phrase "didn,t,know" did not appear in it.
+# MinFreq= 20 ngcnt= 31175558 = ~500MB
+MinFreq = 20
 ngcnt = 0
 leftover = ''
 with open('2008-ngram3-ids.csv', 'r') as gz:
 	with open('ngram3.bin', 'wb') as bin:
 		while 1:
-			buf = gz.read(4 * 1024 * 1024)
+			buf = gz.read(8 * 1024 * 1024)
 			if not buf:
 				break
 			buf = leftover + buf
@@ -101,11 +109,6 @@ with os.popen('sqlite3 :memory:', 'w') as db:
 	db.write('.import word.csv word\n')
 	print('  sqlite :memory: -> ngram.db')
 	db.write('insert into ng.word select id,word from word;\n')
-	print('  done.')
-
-if not os.path.exists('2008-ngram3-ids.csv'):
-	print('*-2008.ids.gz -> 2008-ngram3-ids.csv')
-	os.system('gzip -dc *-2008.ids.gz > 2008-ngram3-ids.csv')
 	print('  done.')
 
 print('2008-ngram3-ids.csv -> ngram.db...')

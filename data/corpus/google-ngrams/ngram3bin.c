@@ -79,8 +79,8 @@ struct ngramword ngramword_load(const struct ngram3map m)
 	while (cursor < end)
 	{
 		const char *str = ngramwordcursor_str(cursor);
-		w.word[cursor->id].len = cursor->len;
-		w.word[cursor->id].str = str;
+		w.word[w.cnt].len = cursor->len;
+		w.word[w.cnt].str = str;
 		w.cnt++;
 		cursor = ngramwordcursor_next(cursor);
 	}

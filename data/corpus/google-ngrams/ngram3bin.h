@@ -28,7 +28,6 @@ struct ngramword
 
 #pragma pack(push, 1)
 struct ngramwordcursor {
-	uint32_t id;
 	uint32_t len;
 };
 #pragma pack(pop)
