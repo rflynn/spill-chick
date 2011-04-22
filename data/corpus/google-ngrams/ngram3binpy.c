@@ -284,7 +284,10 @@ static PyObject *ngram3binpy_id2word(PyObject *self, PyObject *args)
 	if (PyArg_ParseTuple(args, "i", &id))
 	{
 		const char *word = ngramword_id2word(id, obj->word);
-		res = PyUnicode_FromStringAndSize(word, strlen(word));
+		if (word)
+			res = PyUnicode_FromStringAndSize(word, strlen(word));
+		else
+			res = PyErr_NewException("ngram3bin.Error", NULL, NULL);
 		Py_INCREF(res);
 	}
 	return res;
