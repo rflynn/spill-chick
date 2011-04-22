@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define UNKNOWN_ID (0)
+#define IMPOSSIBLE_ID (~0)
+
 struct ngram3map
 {
 	void *m;
@@ -52,6 +55,7 @@ void		    ngramword_fini(struct ngramword);
 
 struct ngram3map    ngram3bin_init(const char *path);
 unsigned long	    ngram3bin_freq(ngram3 find, const struct ngram3map *);
+unsigned long	    ngram3bin_freq2(ngram3 find, const struct ngram3map *);
 ngram3 *	    ngram3bin_like(ngram3 find, const struct ngram3map *);
 void		    ngram3bin_str (const struct ngram3map, FILE *);
 void		    ngram3bin_fini(struct ngram3map);
