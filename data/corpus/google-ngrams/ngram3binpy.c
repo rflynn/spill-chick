@@ -264,11 +264,15 @@ static int ngram3bin_print(PyObject *self, FILE *fp, int flags)
 static PyObject *ngram3binpy_word2id(PyObject *self, PyObject *args)
 {
 	PyObject *res = NULL;
-	ngram3bin *obj = (ngram3bin *)self;
 	PyObject *key = PyUnicode_AsUTF8String(PyTuple_GetItem(args, 0));
-	res = PyDict_GetItem(obj->worddict, key);
+	if (key)
+	{
+		ngram3bin *obj = (ngram3bin *)self;
+		res = PyDict_GetItem(obj->worddict, key);
+	}
 	if (!res)
 		res = PyLong_FromLong(0);
+	Py_INCREF(res);
 	return res;
 }
 
