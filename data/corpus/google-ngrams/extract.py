@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# TODO: add multiprocessing in here
+# the one problem with multiprocessing is handling KeyboardInterrupt
+
 """
 once fetch.py has grabbed a set of ngrams, I parse out a subset and generate CSV
 files that will be compatible with sqlite
@@ -22,8 +25,9 @@ def getid(word):
 
 from glob import glob
 
-for filename in sorted(glob('*-2008.list.gz')):
-	print filename
+filenames = sorted(glob('*-2008.list.gz'))
+for nth,filename in enumerate(filesnames):
+	print '%3u/%3u %s' % (nth, len(filenames), filename)
 	dst = str.replace(filename,'list.gz','ids.gz')
 	if os.path.exists(dst):
 		continue
