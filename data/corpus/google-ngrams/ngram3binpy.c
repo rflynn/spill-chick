@@ -352,10 +352,14 @@ static PyObject *ngram3binpy_freq(PyObject *self, PyObject *args)
 	PyObject *res = NULL;
 	ngram3bin *obj = (ngram3bin *)self;
 	ngram3 find;
+	find.id[2] = IMPOSSIBLE_ID;
 	unsigned long freq = 0;
-	if (PyArg_ParseTuple(args, "iii", find.id+0, find.id+1, find.id+2))
+	if (PyArg_ParseTuple(args, "ii|i", find.id+0, find.id+1, find.id+2))
 	{
-		freq = ngram3bin_freq(find, &obj->ngramap);
+		if (find.id[2] == IMPOSSIBLE_ID)
+			freq = ngram3bin_freq2(find, &obj->ngramap);
+		else
+			freq = ngram3bin_freq(find, &obj->ngramap);
 	}
 	res = PyLong_FromUnsignedLong(freq);
 	Py_INCREF(res);
