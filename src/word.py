@@ -14,12 +14,41 @@ def edits1(word):
 	return set(deletes + transposes + replaces + inserts)
 
 """
+imitate the interface of a Counter() that Words is expecting
+so we can use ngram3bin without him knowing
+"""
+class NGram3BinWordCounter:
+	def __init__(self, ng):
+		self.ng = ng
+	def __contains__(self, word):
+		# foo in me
+		return self.ng.word2id(word) != 0
+	def get(self, word, default=0):
+		try:
+			return self.ng.wordfreq(word)
+		except (ValueError, TypeError):
+			raise KeyError
+	def __getitem__(self, word):
+		# me[key]
+		if type(word) == int:
+			raise IndexError
+		try:
+			return self.ng.wordfreq(word)
+		except:
+			raise KeyError
+	def __setitem__(self, word, val):
+		# me[key] = val
+		pass
+	def update(self, wordfreqlist):
+		pass
+
+"""
 Word statistics
 """
 class Words:
 
-	def __init__(self, f=None):
-		self.frq = collections.Counter()
+	def __init__(self, frq=collections.Counter()):
+		self.frq = frq
 
 	def add(self, word):
 		self.frq[word] += 1
