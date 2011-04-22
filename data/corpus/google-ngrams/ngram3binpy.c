@@ -37,12 +37,16 @@ static PyObject *ngram3bin_getattr(PyObject *self, char *attr);
 static PyObject *ngram3bin_new      (PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_word2id(PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_id2word(PyObject *self, PyObject *args);
-static PyObject *ngram3binpy_match  (PyObject *self, PyObject *args);
+static PyObject *ngram3binpy_id2freq(PyObject *self, PyObject *args);
+static PyObject *ngram3binpy_freq   (PyObject *self, PyObject *args);
+static PyObject *ngram3binpy_like   (PyObject *self, PyObject *args);
 
 static struct PyMethodDef ngram3bin_Methods[] = {
 	{ "word2id",	(PyCFunction) ngram3binpy_word2id,	METH_VARARGS,	NULL },
 	{ "id2word",	(PyCFunction) ngram3binpy_id2word,	METH_VARARGS,	NULL },
-	{ "find",	(PyCFunction) ngram3binpy_match,	METH_VARARGS,	NULL },
+	{ "id2freq",	(PyCFunction) ngram3binpy_id2freq,	METH_VARARGS,	NULL },
+	{ "freq",	(PyCFunction) ngram3binpy_freq,		METH_VARARGS,	NULL },
+	{ "like",	(PyCFunction) ngram3binpy_like,		METH_VARARGS,	NULL },
 	{ "ngram3bin",	(PyCFunction) ngram3bin_new,		METH_VARARGS,	NULL },
 	{ NULL,		NULL,					0,		NULL }
 };
@@ -233,6 +237,7 @@ static PyObject * ngram3bin_new(PyObject *self, PyObject *args)
 		obj->word    = ngramword_load(obj->wordmap);
 		obj->ngramap = ngram3bin_init(ngrampath);
 		obj->worddict = worddict_new(obj->word);
+		ngramword_totalfreqs(obj->word, &obj->wordmap);
 		Py_INCREF(obj->worddict);
 	}
 	Py_INCREF(obj);
@@ -281,6 +286,36 @@ static PyObject *ngram3binpy_id2word(PyObject *self, PyObject *args)
 	return res;
 }
 
+static PyObject *ngram3binpy_id2freq(PyObject *self, PyObject *args)
+{
+	PyObject *res = NULL;
+	ngram3bin *obj = (ngram3bin *)self;
+	unsigned long id = 0;
+	if (PyArg_ParseTuple(args, "i", &id))
+	{
+		res = PyLong_FromUnsignedLong(obj->word.word[id].freq);
+		Py_INCREF(res);
+	}
+	return res;
+}
+
+/*
+ * find frequency of (x,y,z)
+ */
+static PyObject *ngram3binpy_freq(PyObject *self, PyObject *args)
+{
+	PyObject *res = NULL;
+	ngram3bin *obj = (ngram3bin *)self;
+	ngram3 find;
+	if (PyArg_ParseTuple(args, "iii", find.id+0, find.id+1, find.id+2))
+	{
+		unsigned long freq = ngram3bin_freq(find, &obj->ngramap);
+		res = PyLong_FromUnsignedLong(freq);
+		Py_INCREF(res);
+	}
+	return res;
+}
+
 /*
  * given the results of an ngram3_find() call,
  * import them into a python list of 4-tuples [(x,y,z,freq),...]
@@ -313,7 +348,7 @@ static PyObject * ngram3_find_res2py(const ngram3 *f)
 	return res;
 }
 
-static PyObject *ngram3binpy_match(PyObject *self, PyObject *args)
+static PyObject *ngram3binpy_like(PyObject *self, PyObject *args)
 {
 	PyObject *res = NULL;
 	ngram3bin *obj = (ngram3bin *)self;
@@ -322,7 +357,7 @@ static PyObject *ngram3binpy_match(PyObject *self, PyObject *args)
 	{
 		if (obj->ngramap.m)
 		{
-			ngram3 *f = ngram3bin_find(find, obj->ngramap);
+			ngram3 *f = ngram3bin_like(find, &obj->ngramap);
 			res = ngram3_find_res2py(f);
 			free(f);
 		}
