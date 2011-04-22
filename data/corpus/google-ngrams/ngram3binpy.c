@@ -300,7 +300,10 @@ static PyObject *ngram3binpy_id2freq(PyObject *self, PyObject *args)
 	unsigned long id = 0;
 	if (PyArg_ParseTuple(args, "i", &id))
 	{
-		res = PyLong_FromUnsignedLong(obj->word.word[id].freq);
+		if (id < obj->word.cnt)
+			res = PyLong_FromUnsignedLong(obj->word.word[id].freq);
+		else
+			res = PyLong_FromLong(0);
 		Py_INCREF(res);
 	}
 	return res;
