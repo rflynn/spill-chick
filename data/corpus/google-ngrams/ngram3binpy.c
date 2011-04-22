@@ -342,12 +342,13 @@ static PyObject *ngram3binpy_freq(PyObject *self, PyObject *args)
 	PyObject *res = NULL;
 	ngram3bin *obj = (ngram3bin *)self;
 	ngram3 find;
+	unsigned long freq = 0;
 	if (PyArg_ParseTuple(args, "iii", find.id+0, find.id+1, find.id+2))
 	{
-		unsigned long freq = ngram3bin_freq(find, &obj->ngramap);
-		res = PyLong_FromUnsignedLong(freq);
-		Py_INCREF(res);
+		freq = ngram3bin_freq(find, &obj->ngramap);
 	}
+	res = PyLong_FromUnsignedLong(freq);
+	Py_INCREF(res);
 	return res;
 }
 
@@ -396,6 +397,10 @@ static PyObject *ngram3binpy_like(PyObject *self, PyObject *args)
 			res = ngram3_find_res2py(f);
 			free(f);
 		}
+	}
+	else
+	{
+		res = PyLong_FromLong(0);
 	}
 	return res;
 }
