@@ -3,8 +3,8 @@
  * Copyright 2011 Ryan Flynn <parseerror+github@gmail.com>
  */
 
-//#ifndef NGRAM3BIN_H
-//#define NGRAM3BIN_H
+#ifndef NGRAM3BIN_H
+#define NGRAM3BIN_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -60,5 +60,5 @@ ngram3 *	    ngram3bin_like(ngram3 find, const struct ngram3map *);
 void		    ngram3bin_str (const struct ngram3map, FILE *);
 void		    ngram3bin_fini(struct ngram3map);
 
-//#endif /* NGRAM3BIN_H */
+#endif /* NGRAM3BIN_H */
 
