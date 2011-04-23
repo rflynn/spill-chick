@@ -168,8 +168,8 @@ unsigned long ngram3bin_freq2(ngram3 find, const struct ngram3map *m)
 
 
 /*
- * given an id 3-gram (x,y,z) and a list of ngram frequencies, count the number
- * of matches of (_,y,z) or (x,_,z) or (x,y,_)
+ * given an id 3-gram (x,y,z) and a list of ngram frequencies
+ * return matches (_,y,z) or (x,_,z) or (x,y,_)
  */
 ngram3 * ngram3bin_like(ngram3 find, const struct ngram3map *m)
 {
