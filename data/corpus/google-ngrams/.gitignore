@@ -1,4 +1,7 @@
 *.list.gz
 *.csv.zip
+*.csv.gz
 *.csv
 *-2008.ids.gz
+*.bin
+build/*
