@@ -148,25 +148,18 @@ unsigned long ngram3bin_freq2(ngram3 find, const struct ngram3map *m)
 	unsigned long freq = 0;
 	ngram3 *cur = m->m;
 	const ngram3 *end = (ngram3 *)((char *)cur + m->size);
-	int found1 = 0;
 	while (cur < end)
 	{
 		if (cur->id[0] == find.id[0] &&
 		    cur->id[1] == find.id[1])
 		{
 			freq += cur->freq;
-			if (found1)
-				break;
-			found1 = 1;
 		}
 		else
 		if (cur->id[1] == find.id[0] &&
 		    cur->id[2] == find.id[1])
 		{
 			freq += cur->freq;
-			if (found1)
-				break;
-			found1 = 1;
 		}
 		cur++;
 	}
