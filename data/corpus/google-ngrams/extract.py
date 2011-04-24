@@ -26,7 +26,7 @@ def getid(word):
 from glob import glob
 
 filenames = sorted(glob('*-2008.list.gz'))
-for nth,filename in enumerate(filesnames):
+for nth,filename in enumerate(filenames):
 	print '%3u/%3u %s' % (nth, len(filenames), filename)
 	dst = str.replace(filename,'list.gz','ids.gz')
 	if os.path.exists(dst):
