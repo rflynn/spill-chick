@@ -204,7 +204,7 @@ def do_suggest(target_ngram, freq, ctx, d, w, g, p):
 		sometimes someone really botches the spelling and comes up with a garbage term
 		"""
 		freqlog = lambda fr: round(log(fr+1))
-		freq = rsort1([(t, freqlog(g.freqs(t)), alt[t]) for t in toks])
+		freq = [(t, freqlog(g.freqs(t)), alt[t]) for t in toks]
 		freq2 = [[a for a in al if freqlog(g.freqs(a))+1 >= fr]
 			for k,fr,al in freq]
 		print('popular_alts=',freq2)
