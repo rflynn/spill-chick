@@ -15,9 +15,15 @@ class GramsBin:
 
 	def freq(self, ng):
 		#print('freq()=',ng)
-		if len(ng) > 1:
+		l = len(ng)
+		if l > 1:
 			ids = [ self.ng.word2id(w) for w in ng ]
-			fr = self.ng.freq(*ids)
+			if l > 3:
+				# chop up id list into ngram3-sized chunks
+				smaller = [tuple(ids[i:i+3]) for i in range(len(ids)-3+1)]
+				fr = sum(self.ng.freq(*s) for s in smaller)
+			else:
+				fr = self.ng.freq(*ids)
 			return fr
 		else:
 			return self.ng.wordfreq(ng[0])
@@ -27,7 +33,7 @@ class GramsBin:
 		return self.ng.wordfreq(s)
 
 	def ngram_like(self, ng):
-		if len(ng) <= 1:
+		if len(ng) <= 2:
 			return []
 		#print('like()=',ng)
 		ids = tuple(map(self.ng.word2id, ng))
