@@ -44,6 +44,7 @@ class Doc:
 			self.tok[-1] += ll
 
 	def totalTokens(self):
+		return sum(len(ts) for ts in self.tok)
 		return sum(self.docwords.values())
 
 	def unknownToks(self):
