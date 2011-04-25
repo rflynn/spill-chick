@@ -90,6 +90,10 @@ struct ngramword ngramword_load(const struct ngram3map m)
 
 /*
  * FIXME: O(n)
+ * if i added a stage at the beginning of this whole process and sorted words then we could
+ * reduce this to O(log n)
+ * we can also reduce the impact of this by converting all tokens in a document to their ids
+ * once for the duration of the process; currently we're being lazy and repeatedly translating
  */
 const unsigned long ngramword_word2id(const char *word, unsigned len, const struct ngramword w)
 {
