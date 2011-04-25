@@ -217,6 +217,11 @@ void ngramword_totalfreqs(struct ngramword w, const struct ngram3map *m)
 		if (cur->id[2] < w.cnt) w.word[cur->id[2]].freq += cur->freq;
 		cur++;
 	}
+	{
+		unsigned long i, cnt = w.cnt;
+		for (i = 0; i < cnt; i++)
+			w.word[i].freq /= 2;
+	}
 }
 
 void ngram3bin_fini(struct ngram3map m)
