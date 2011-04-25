@@ -1,53 +1,111 @@
 # unit tests
 
-i no you : i know you
-i didn't no : i didn't know
-a miss steak : a mistake
-i new that! : i knew that!
+# test: 'alternatives' and context
+# 'am found of' is a more popular ngram than 'am fond of', wtf can i do?!
+#I am found of you : I am fond of you
 
+# corpus has a very low score for "i know you", surprised...
+#i no you : i know you
+
+# FIXME: I'm not sure but either I'm picking bad examples or something;
+# what i expect is not what the ngrams suggest. strange.
+#in the sample place : in the same place
+
+######## PASS ############
+nope, i was write : nope, i was right # metallic
+their it is : there it is
+you are waisting your time : you are wasting your time
+bridge the gas : bridge the gap
+# test simple change, but...
+# there are several similar variants that are more popular than the correct answer
+i new that! : i knew that!
+i didn't no : i didn't know
+# test phonetic match and token removal
+a miss steak : a mistake
+peace of shit : piece of shit
+their is : there is
+their is no : there is no
+untied stats : united states
+an IV league school : an IVY league school
+Windows PX : Windows XP
+I am very tried : I am very tired
+i now know : i now know # no-op
+dry rum : dry run
+funky farm : funny farm
+win or loose : win or lose
+Wet your appetite : Whet your appetite
+
+#--end--
+
+# this is a tricky one. "the dog was" is immensely frequent,
+#  but "dog was dense" isn't. "fog was dense" is more frequent than "dog was dense",
+# but when the ngram frequencies are simply summed "the dog" still wins
+The dog was dense : The fog was dense
+
+#--end--
+
+# botched idioms
+Coming down the pipe : Coming down the pike
+Through the ringer : Through the wringer
+touch basis : touch bases
+800-pond gorilla : 800-pound gorilla
+could care less : couldn't care less
+never cry wool : never cry wolf
+scotch free : scot-free
+#oh de colone : eau de cologne
+worth it's salt : worth its salt
+garden of eatin' : garden of eden
+pushing up days : pushing up daisies
+#two in the hand is worth one in the bush : one in the hand is worth two in the bush
+
+#--end--
+
+
+#--end--
+
+It it did, the future would undoubtedly be changed : If it did, the future would undoubtedly be changed # Foundation, Isaac Asimov p. 33
+
+#--end--
+
+####### BROKEN ##########
+overhere : overhear
+USB-to-serail driver : USB-to-serial driver # technical term not in ngrams
+# big test; requires token expansion (their) -> (they,re)
+Their coming too sea if its reel. : They're coming to see if it's real.
+# nope, phonic stuff doesn't do fuzzy matching
+all intensive purposes : all intents and purposes
+say "good riddens" to : say "good riddance" to # fuzzy phonic matching
+spill check : spell check
+
+# this is a tricky one. "the dog was" is immensely frequent,
+#  but "dog was dense" isn't. "fog was dense" is more frequent than "dog was dense",
+# but when the ngram frequencies are simply summed "the dog" still wins
+The dog was dense : The fog was dense
+
+#--end--
+
+####### SORT OF WORKS ############
+# fixed by single-token replace, but trying to fix further breaks it.
+# need to know when to 
+RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
+spill chick : spell check # actually ok... ['still thick','spell check',...]
+spillchick : spellcheck # spillchick -> spellcheck -> spellchecker
+
+
+
+
+
+# FIXME: these take ages and always fail
 doe sit use machien learning : does it use machine learning
 dose it use machien learning : does it use machine learning
 doze it use machien learning : does it use machine learning
 
-i now know : i now know # no-op
-
 #soyouneedtomakethatvariable : so you need to make that variable
 
-you are waisting your time : you are wasting your time
-
-overhere : overhear
 #over hear : overhear # not sure about this one
 over here : over here
 
-in the sample place : in the same place
-
-bridge the gas : bridge the gap
-
-# this case is important because "i am found" is legitimate (although corpus hasn't seen it).
-# in either case, we need to expand our context to include "am found of" and "found of you"
-# because that will make the correct course of action found->found clear.
-I am found of you : I am fond of you
-
 #--end--
-
-untied stats : united states
-
-Their coming too sea if its reel. : They're coming to see if it's reel.
-
-nope, i was write : nope, i was right # metallic
-
-their is : there is
-their it is : there it is
-
-# i don't think this is in our corpus
-peace of shit : piece of shit
-
-#--end--
-
-spillchick : spellcheck
-spill check : spell check
-spill chick : spell check
-
 
 # misspellings: non-words
 naieve : naive
@@ -61,10 +119,7 @@ I'm leary of it : I'm leery of it
 a pthon library : a python library
 #santimoniousness : sanctimoniousness 
 integeter division : integer division
-USB-to-serail chip : USB-to-serial chip
-an IV league school : an Ivy league school
-say "good riddens" to : say "good riddance" to
-RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
+
 This is all very tenative. : This is all very tentative.
 someone otther than yourself : someone other than yourself
 create a passified country : create a pacified country # urbandictionary
@@ -105,18 +160,6 @@ Humans many simply be too stupid : Humans may simply be too stupid
 At first it was effecting our sex life : At first it was affecting our sex life
 #pointers to the UINT type will through away the significant bits : pointers to the UINT type will throw away the significant bits
 #I think they call that a sentence now days. : I think they call that a sentence nowadays.
-
-# botched idioms
-dry rum : dry run
-never cry wool : never cry wolf
-funky farm : funny farm
-scotch free : scot-free
-win or loose : win or lose
-oh de colone : eau de cologne
-worth it's salt : worth its salt
-garden of eatin' : garden of eden
-pushing up days : pushing up daisies
-#two in the hand is worth one in the bush : one in the hand is worth two in the bush
 
 
 # phonetic errors
@@ -163,3 +206,4 @@ I 8 it! : I ate it!
 #Use Reddit to decide what to tool use. : Use Reddit to decide what tool to use.
 # Math is not sexy. Statistics are not sext. : Math is not sexy. Statistics are not sexy.
 # best font for coding : best font for coding
+It it did, the future would undoubtedly be changed in some minor respects. : If it did, the future would undoubtedly be changed in some minor respects. # Foundation, Isaac Asimov p. 33
