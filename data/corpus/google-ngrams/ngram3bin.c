@@ -137,21 +137,10 @@ int ngram3cmp(const void *va, const void *vb)
  */
 unsigned long ngram3bin_freq(ngram3 find, const struct ngram3map *m)
 {
-	unsigned long freq = 0;
-	ngram3 *cur = m->m;
-	const ngram3 *end = (ngram3 *)((char *)cur + m->size);
-	while (cur < end)
-	{
-		if (cur->id[0] == find.id[0] &&
-		    cur->id[1] == find.id[1] &&
-		    cur->id[2] == find.id[2])
-		{
-			freq = cur->freq;
-			break;
-		}
-		cur++;
-	}
-	return freq;
+	ngram3 *base = m->m;
+	size_t nmemb = m->size / sizeof *base;
+	const ngram3 *res = bsearch(&find, base, nmemb, sizeof *base, ngram3cmp);
+	return res ? res->freq : 0;
 }
 
 /*
