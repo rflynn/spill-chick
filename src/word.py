@@ -74,7 +74,9 @@ class Words:
 	# FIXME: hungreh -> hungry
 	def similar(self, word):
 		e = self.known(edits1(word))
-		if len(word) > 2:
+		# FIXME: this is just the trickiest line in the whole thing.
+		# flexibility at an expensive price...
+		if len(word) > 6:
 			e |= self.known_edits2(word)
 		return e
 
