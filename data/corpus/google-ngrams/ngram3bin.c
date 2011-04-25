@@ -27,10 +27,10 @@ struct ngram3map ngram3bin_init(const char *path)
 	if (!stat(path, &st))
 	{
 		//printf("stat(\"%s\") size=%llu\n", path, (unsigned long long)st.st_size);
-		if (-1 != (m.fd = open(path, O_RDONLY)))
+		if (-1 != (m.fd = open(path, O_RDWR)))
 		{
 			m.size = st.st_size;
-			m.m = mmap(NULL,m.size, PROT_READ, MAP_SHARED, m.fd, 0);
+			m.m = mmap(NULL, m.size, PROT_READ | PROT_WRITE, MAP_SHARED, m.fd, 0);
 			if (MAP_FAILED == m.m)
 			{
 				perror("mmap");
@@ -116,6 +116,20 @@ const char * ngramword_id2word(unsigned long id, const struct ngramword w)
 void ngramword_fini(struct ngramword w)
 {
 	free(w.word);
+}
+
+/*
+ * ngram3 comparison callback
+ * ascending order
+ */
+int ngram3cmp(const void *va, const void *vb)
+{
+	const ngram3 *a = va,
+	             *b = vb;
+	if (a->id[0] != b->id[0]) return (int)(a->id[0] - b->id[0]);
+	if (a->id[1] != b->id[1]) return (int)(a->id[1] - b->id[1]);
+	if (a->id[2] != b->id[2]) return (int)(a->id[2] - b->id[2]);
+	return 0;
 }
 
 /*

@@ -19,6 +19,9 @@ struct ngram3map
 	unsigned long long size;
 };
 
+#define ngram3map_start(map) ((ngram3*)((map)->m))
+#define ngram3map_end(map) ((ngram3*)(((char *)((map)->m)) + (map)->size))
+
 struct ngramword
 {
 	unsigned long cnt;
@@ -59,6 +62,8 @@ unsigned long	    ngram3bin_freq2(ngram3 find, const struct ngram3map *);
 ngram3 *	    ngram3bin_like(ngram3 find, const struct ngram3map *);
 void		    ngram3bin_str (const struct ngram3map, FILE *);
 void		    ngram3bin_fini(struct ngram3map);
+
+int ngram3cmp(const void *, const void *);
 
 #endif /* NGRAM3BIN_H */
 
