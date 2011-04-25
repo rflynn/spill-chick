@@ -5,8 +5,6 @@
  * google's data has duplicate ngrams(!)
  * sort our ngram.bin file's entries, then merge/sum
  *
- * FUCK: why doesn't this work?!
- *
  */
 
 #include <stdlib.h>
