@@ -55,7 +55,7 @@ class Phon:
 		def head(l):
 			return l[0] if l else None
 		s = [head(self.word.get(t,[''])) for t in toks]
-		print('phraseSound(',toks,')=',s)
+		#print('phraseSound(',toks,')=',s)
 		if not all(s):
 			return []
 		# nuke numbers, join into one string
@@ -63,7 +63,7 @@ class Phon:
 		# nuke consecutive duplicate sounds
 		u = re.sub('(\S+) \\1 ', '\\1 ', t)
 		v = u.split()
-		print('phraseSound2=',v)
+		#print('phraseSound2=',v)
 		return v
 
 	def soundsToWords(self, snd):
