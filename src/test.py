@@ -432,7 +432,7 @@ def ngram_suggest(target_ngram, freq, d, w, g, p):
 	if we didn't substantially improve the freq then don't recommend it.
 	prevent popular phrases from overriding similar but less frequent ones
 	"""
-	if realbest[1][2] < freq ** 2:
+	if realbest[1][2] <= freq ** 2:
 		return []
 	
 	"""
