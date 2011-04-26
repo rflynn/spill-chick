@@ -415,7 +415,7 @@ def ngram_suggest(target_ngram, freq, d, w, g, p):
 	we get a much higher score for "the dog was", even though "fog was dense" outscores "dog was dense".
 	the fact that people talk about their dogs more than fog kills us here.
 	"""
-	reallink = rsort(realcnt2.items(), key=lambda x:x[1])
+	reallink = rsort1(realcnt2.items())
 	print('reallink=',reallink)
 	#reallink2 = rsort(reallink, key=lambda x:x[1][1])
 	#print('reallink2=',reallink2)
