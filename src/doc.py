@@ -18,13 +18,14 @@ class Doc:
 
 	def __init__(self, f, w):
 		self.words = w				# global tokens
-		self.docwords = collections.Counter()	# local {token:freq}
+		#self.docwords = collections.Counter()	# local {token:freq}
 		self.tokenize(f)
 
 	def tokenize(self, f):
 		self.lines = []
 		self.tok = [[]]
 		for lcnt,line in enumerate(f):
+			line = line.decode('utf8')
 			self.lines.append(line)
 			line = line.lower() # used for index below
 			toks = gram.tokenize(line)
@@ -34,7 +35,7 @@ class Doc:
 				continue
 			if toks[-1] == '\n':
 				toks.pop()
-			self.docwords.update(toks) # add words to local dictionary
+			#self.docwords.update(toks) # add words to local dictionary
 			tpos = 0
 			ll = []
 			for t in toks:
@@ -45,7 +46,7 @@ class Doc:
 
 	def totalTokens(self):
 		return sum(len(ts) for ts in self.tok)
-		return sum(self.docwords.values())
+		#return sum(self.docwords.values())
 
 	def unknownToks(self):
 		for tok in self.tok:
@@ -149,9 +150,10 @@ class Doc:
 		lines[l] = lines[l][:pos] + cap + lines[l][end:]
 		off[l] += len(cap) - len(o)
 		# FIXME: over-simplified; consider multi-token change
-		self.docwords[ow] -= 1
+		#self.docwords[ow] -= 1
 		if mod:
-			self.docwords[mod] += 1
+			pass
+			#self.docwords[mod] += 1
 		return (lines, off)
 
 	def demoChanges(self, changes):

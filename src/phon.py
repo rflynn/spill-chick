@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 """
 Handle phonetics; i.e. the way things sound
@@ -21,13 +22,15 @@ class Phon:
 			with open(path+file, 'wb') as dst:
 				with gzip.open(path+file+'.gz', 'rb') as src:
 					dst.write(src.read())
+		redigits = re.compile('\d+')
 		with open(path+file, 'r') as f:
 			for line in f:
 				if line.startswith(';;;'):
 					continue
+				line = line.decode('utf8')
 				line = line.strip().lower()
 				word, phon = line.split('  ')
-				phon = re.sub('\d+', '', phon)
+				phon = re.sub(redigits, '', phon)
 				self.words.add(word)
 				self.word[word].append(phon)
 				self.phon[phon].append(word)

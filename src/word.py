@@ -47,7 +47,7 @@ Word statistics
 """
 class Words:
 
-	def __init__(self, frq=collections.Counter()):
+	def __init__(self, frq=None):#collections.Counter()):
 		self.frq = frq
 
 	def add(self, word):

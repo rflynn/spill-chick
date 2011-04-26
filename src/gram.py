@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from collections import Counter, defaultdict
+from collections import defaultdict
+try:
+	from collections import Counter
+except ImportError: # python 2.6?
+	pass
 import re, sys, traceback
 import unittest
 from operator import itemgetter
