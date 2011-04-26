@@ -358,7 +358,7 @@ def ngram_suggest(target_ngram, freq, d, w, g, p):
 			sum up the frequency of all ngrams in the realized result
 			note: this is inefficient and should be above and intelligently merged
 			"""
-			fr = sum(map(g.freq, list2ngrams(sctx, tlen)))
+			fr = round(sum(map(g.freq, list2ngrams(sctx, tlen))) / len(sctx))
 			# TODO: should we adjust 'fr' based on the minimum ngram frequency
 			# or not? 
 			"""
