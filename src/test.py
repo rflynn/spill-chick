@@ -247,8 +247,23 @@ def do_suggest(target_ngram, freq, ctx, d, w, g, p):
 		didPhon = False
 
 	partial = list(product(*part_pop))
-	print('partial=', partial)
 
+	"""
+	given a list of strings, produce all permutations by joining two tokens together
+	example [a,b,c] [[a,bc],[ab,c]]
+	"""
+	def permjoin(l):
+		if len(l) < 2:
+			yield l
+		else:
+			for suf in permjoin(l[1:]):
+				yield [l[0]]+ suf
+			for suf in permjoin(l[2:]):
+				yield [l[0]+l[1]] + suf
+
+	partial += list(permjoin(toks))[1:]
+
+	print('partial=', partial)
 	best = partial
 
 	# NOTE: i really want izip_longest() but it's not available!
