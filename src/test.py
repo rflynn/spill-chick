@@ -524,7 +524,7 @@ sugg                             undoubtedly be changed 0
 		print('ngram_suggest=',best)
 		if best:
 			# present our potential revisions
-			proposedChanges = best #list(zip(target_ngram, best[0]))
+			proposedChanges = best
 			print('proposedChanges...', proposedChanges)
 			res = d.demoChanges(proposedChanges)
 			print(res)
