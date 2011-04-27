@@ -8,6 +8,16 @@ Test our word/grammar algorithm
 """
 
 import logging
+
+logger = logging.getLogger('spill-chick')
+hdlr = logging.FileHandler('/var/tmp/spill-chick.log')
+logger.addHandler(hdlr)
+logger.setLevel(logging.DEBUG)
+
+def handleError(self, record):
+  raise
+logging.Handler.handleError = handleError
+
 from math import log
 from operator import itemgetter
 from itertools import takewhile, dropwhile, product, cycle, chain
@@ -20,17 +30,6 @@ from gram import Grams
 from grambin import GramsBin
 from doc import Doc
 import algo
-
-logger = logging.getLogger('spill-chick')
-hdlr = logging.FileHandler('/var/tmp/spill-chick.log')
-logger.addHandler(hdlr)
-logger.setLevel(logging.DEBUG)
-
-def handleError(self, record):
-  raise
-logging.Handler.handleError = handleError
-
-#logger.basicConfig(file='chick.log')#stream=sys.stderr)
 
 logger.debug('sys.version=' + sys.version)
 
