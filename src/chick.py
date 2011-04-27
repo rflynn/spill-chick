@@ -481,7 +481,11 @@ class Chick:
 		if we didn't substantially improve the freq then don't recommend it.
 		prevent popular phrases from overriding similar but less frequent ones
 		"""
-		if realbest[1][2] <= freq ** 2:
+		# TODO: for interactive spell-checking we don't want to have hard, arbitrary limits;
+		# instead we want to calculate all potential "improvements" and present them to the
+		# user in descending order of magnitude
+		if realbest[1][2] <= target_freq ** 2:
+			logger.debug('realbest=%s not popular enough vs target_freq=%s' % (realbest, target_freq))
 			return []
 
 		"""
