@@ -15,15 +15,14 @@ class Phon:
 		self.phon = collections.defaultdict(list)
 		self.load()
 	def load(self):
-		path = '../data/cmudict/'
-		file = 'cmudict.0.7a'
+		path ='/home/pizza/proj/spill-chick/data/cmudict/cmudict.0.7a'
 		# extract file if necessary
-		if not os.path.exists(path+file):
-			with open(path+file, 'wb') as dst:
-				with gzip.open(path+file+'.gz', 'rb') as src:
+		if not os.path.exists(path):
+			with open(path, 'wb') as dst:
+				with gzip.open(path+'.gz', 'rb') as src:
 					dst.write(src.read())
 		redigits = re.compile('\d+')
-		with open(path+file, 'r') as f:
+		with open(path, 'r') as f:
 			for line in f:
 				if line.startswith(';;;'):
 					continue
