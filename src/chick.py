@@ -7,11 +7,12 @@
 Test our word/grammar algorithm
 """
 
+import logging
 from math import log
 from operator import itemgetter
 from itertools import takewhile, dropwhile, product, cycle, chain
 from collections import defaultdict
-import bz2, sys, re
+import bz2, sys, re, os
 import copy
 from word import Words,NGram3BinWordCounter
 from phon import Phon
@@ -20,7 +21,18 @@ from grambin import GramsBin
 from doc import Doc
 import algo
 
-print('sys.version=',sys.version)
+logger = logging.getLogger('spill-chick')
+hdlr = logging.FileHandler('/var/tmp/spill-chick.log')
+logger.addHandler(hdlr)
+logger.setLevel(logging.DEBUG)
+
+def handleError(self, record):
+  raise
+logging.Handler.handleError = handleError
+
+#logger.basicConfig(file='chick.log')#stream=sys.stderr)
+
+logger.debug('sys.version=' + sys.version)
 
 """
 
@@ -118,30 +130,27 @@ def list2ngrams(l, size):
 class Chick:
 	def __init__(self):
 		# initialize all "global" data
-		print('loading...')
-		sys.stdout.flush()
-		print('  corpus...')
-		sys.stdout.flush()
+		logger.debug('loading...')
+		logger.debug('  corpus...')
 		self.g = GramsBin(
 			'../data/corpus/google-ngrams/word.bin',
 			'../data/corpus/google-ngrams/ngram3.bin')
 		self.w = Words(NGram3BinWordCounter(self.g.ng))
-		print('  phon')
-		sys.stdout.flush()
+		logger.debug('  phon')
 		self.p = Phon(self.w)
-		print('done.')
+		logger.debug('done.')
 		# sanity-check junk
 		# note: string/unicode fucks python2
 		"""
-	print('w.correct(naieve)=',w.correct(u'naieve'))
-	print('g.freq((didn))=',g.freq(('didn',)))
-	print('g.freq((a,mistake))=',g.freq(('a','mistake')))
-	print('g.freq((undoubtedly,be,changed))=',g.freq(('undoubtedly','be','changed')))
-	print('g.freq((undoubtedly,be))=',g.freq(('undoubtedly','be')))
-	print('g.freq((be,changed))=',g.freq(('be','changed')))
-	print('g.freq((it,it,did))=',g.freq(('it','it','did')))
-	print('g.freq((it,it))=',g.freq(('it','it')))
-	print('g.freq((it,did))=',g.freq(('it','did')))
+	logger.debug('w.correct(naieve)=',w.correct(u'naieve'))
+	logger.debug('g.freq((didn))=',g.freq(('didn',)))
+	logger.debug('g.freq((a,mistake))=',g.freq(('a','mistake')))
+	logger.debug('g.freq((undoubtedly,be,changed))=',g.freq(('undoubtedly','be','changed')))
+	logger.debug('g.freq((undoubtedly,be))=',g.freq(('undoubtedly','be')))
+	logger.debug('g.freq((be,changed))=',g.freq(('be','changed')))
+	logger.debug('g.freq((it,it,did))=',g.freq(('it','it','did')))
+	logger.debug('g.freq((it,it))=',g.freq(('it','it')))
+	logger.debug('g.freq((it,did))=',g.freq(('it','did')))
 		"""
 
 	def alternatives(self, d, t, freq):
@@ -168,7 +177,7 @@ class Chick:
 		token lists
 		"""
 		if sum(map(len, toks)) > 12:
-			print('too long for exhaustive')
+			logger.debug('too long for exhaustive')
 			return []
 		s = list(algo.splits(toks, freq, self.g))
 		return s
@@ -179,27 +188,27 @@ class Chick:
 		"""
 		# create a phentic signature of the ngram
 		phonsig = self.p.phraseSound(toks)
-		print('phonsig=',phonsig)
-		#print('phonsig=',p.phraseSound(['all','intents','and','purposes']))
+		logger.debug('phonsig=%s' % phonsig)
+		#logger.debug('phonsig=',p.phraseSound(['all','intents','and','purposes']))
 
 		phonwords = list(self.p.soundsToWords(phonsig))
-		print('phonwords=',phonwords)
+		logger.debug('phonwords=%s' % phonwords)
 		if phonwords == [[]]:
 			phonpop = []
 		else:
 			# remove any words we've never seen
 			phonwords2 = [[[w for w in p if self.g.freqs(w) > minfreq] for p in pw] for pw in phonwords]
-			print('phonwords2=',phonwords2)
+			logger.debug('phonwords2=', phonwords2)
 			# remove any signatures that contain completely empty items after previous
 			phonwords3 = [pw for pw in phonwords2 if all(pw)]
-			print('phonwords3=',phonwords3)
+			logger.debug('phonwords3=%s' % phonwords3)
 			phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
-			print('phonwords4=',phonwords4)
+			logger.debug('phonwords4=%s' % phonwords4)
 			# look up ngram popularity, toss anything not more popular than original and sort
 			phonpop = rsort1([(pw, self.g.freq(pw)) for pw in phonwords4])
-			print('phonpop=',phonpop)
+			logger.debug('phonpop=%s' % phonpop)
 			phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
-			print('phonpop=',phonpop)
+			logger.debug('phonpop=%s' % phonpop)
 		if phonpop == []:
 			return []
 		best = phonpop[0][0]
@@ -230,7 +239,7 @@ class Chick:
 		freq = [(t, freqlog(self.g.freqs(t)), alt[t]) for t in toks]
 		freq2 = [[a for a in al if freqlog(self.g.freqs(a))+1 >= fr]
 			for k,fr,al in freq]
-		print('popular_alts=',freq2)
+		logger.debug('popular_alts=%s' % freq2)
 		return freq2
 
 	@staticmethod
@@ -254,15 +263,15 @@ class Chick:
 		"""
 
 		toks = [t[0] for t in target_ngram]
-		print('toks=',toks)
+		logger.debug('toks=%s' % toks)
 
 		# find potential alternative tokens for the tokens in the unpopular ngrams
 		alt = dict([(t, self.alternatives(d,t,freq)) for t in toks])
-		print('alt=',alt)
+		logger.debug('alt=%s' % alt)
 
 		# list all ngrams containing partial matches for our ngram
 		part = self.g.ngram_like(toks)
-		print('part=', part[:50],'...')
+		logger.debug('part=%s...' % part[:50])
 
 		"""
 		part & alt
@@ -270,14 +279,14 @@ class Chick:
 		an intersection between the two means we've found as good a candidate as we'll get.
 		"""
 		part_pop = Chick.intersect_alt_tok(part, alt, toks)
-		print('part_pop=',part_pop)
+		logger.debug('part_pop=%s' % part_pop)
 
 		if not any(part_pop):
 			part_pop = self.popular_alts(alt, toks)
 
 		"""
 		toks = [t[0] for t in target_ngram]
-		print('toks=',toks)
+		logger.debug('toks=',toks)
 		the code above is our best shot for repairing simple transpositions, etc.
 		however, if any of the tokens do not intersect part & alt...
 		for more mangled stuff we try a variety of techniques,
@@ -286,12 +295,12 @@ class Chick:
 		if not all(part_pop) or part_pop == [[t] for t in toks]:
 			didPhon = True
 			phong = self.phonGuess(toks, freq)
-			print('phong=',phong)
+			logger.debug('phong=%s' % phong)
 			if phong != []:
 				part_pop = phong
 			else:
 				#intertok = inter_token(toks, w.frq, g)
-				#print('intertok=', intertok)
+				#logger.debug('intertok=', intertok)
 				#if intertok != []:
 					#part_pop = [[x] for x in intertok[0]]
 				#else:
@@ -301,26 +310,26 @@ class Chick:
 							for t in alt[toks[i]] if t != toks[i]]
 						part_pop[i] = [x[0] for x in sort2(dec)][:3]
 			# add tokens back into part_pop
-			print("part_pop before...=", part_pop)
+			logger.debug("part_pop before...=%s" % part_pop)
 			part_pop = [p + ([] if t in p else [t])
 					for t,p in zip(toks,part_pop)]
-			print("part_pop'=", part_pop)
+			logger.debug("part_pop'=%s" % part_pop)
 		else:
 			didPhon = False
 		partial = list(product(*part_pop))
 		partial += list(Chick.permjoin(toks))[1:]
-		print('partial=', partial)
+		logger.debug('partial=%s' % partial)
 		best = partial
 		# NOTE: i really want izip_longest() but it's not available!
 		if best and len(best[0]) < len(target_ngram):
 			best[0] = tuple(list(best[0]) + [''])
 		best = [x[0] for x in rsort1([(b, self.g.freq(Chick.canon(b))) for b in best])]
-		print(lineno(),'best=',best)
+		logger.debug('%s best=%s' % (lineno(), best))
 		# if our best suggestions are no more frequent than what we started with, give up!
 		"""
 		if best and g.freq(canon(best[0])) <= freq:
 			best = []
-		print('best=',best)
+		logger.debug('best=',best)
 		"""
 		if len(best) > 5:
 			best = best[:5]
@@ -345,30 +354,30 @@ class Chick:
 		[S(a,b,c), S(b,c,d), S(c,d,e), S(d,e,f), S(e,f,g)]
 		"""
 
-		print('target_ngram=', target_ngram)
+		logger.debug('target_ngram=' + str(target_ngram))
 		tlen = len(target_ngram)
 
 		context = list(d.ngram_context(target_ngram, tlen))
-		print('context=', context)
+		logger.debug('context=' + str(context))
 		clen = len(context)
 
-		print('tlen=',tlen,'clen=',clen)
+		logger.debug('tlen=%d clen=%d' % (tlen, clen))
 		#context_ngrams = [tuple(context[i:i+tlen]) for i in range(clen-tlen+1)]
 		context_ngrams = list2ngrams(context, tlen)
-		print('context_ngrams=', context_ngrams)
+		logger.debug('context_ngrams=%s' % context_ngrams)
 
 		# gather suggestions for each ngram overlapping target_ngram
 		sugg = [(ng, self.do_suggest(ng, self.g.freq([x[0] for x in ng]), context_ngrams, d))
 			for ng in context_ngrams]
 
-		print('sugg=', sugg)
+		logger.debug('sugg=%s' % sugg)
 		for ng,su in sugg:
 			for s in su:
-				print('sugg %s%s %u' % (' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
+				logger.debug('sugg %s%s %u' % (' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
 
 		def apply_suggest(ctx, ng, s):
 			# replace 'ng' slice of 'ctx' with contents of text-only ngram 's'
-			print('apply_suggest(ctx=',ctx,'ng=',ng,'s=',s,')')
+			logger.debug('apply_suggest(ctx=%s ng=%s s=%s)' % (ctx, ng, s))
 			ctx = copy.copy(ctx)
 			index = ctx.index(ng[0])
 			ctx2 = ctx[:index] + \
@@ -387,11 +396,11 @@ class Chick:
 
 		# merge suggestions based on what they change
 		realized = realize_suggest(context, sugg)
-		print('realized=', realized)
+		logger.debug('realized=%s' % realized)
 
 		realcnt = {}
 		for real in realized:
-			print('real=',real)
+			logger.debug('real=%s' % real)
 			for sctx,ng,s in real:
 				"""
 				sum up the frequency of all ngrams in the realized result
@@ -411,8 +420,8 @@ class Chick:
 				except KeyError:
 					r = (fr, 1)
 				realcnt[sctx] = r
-				print('sctx=<%s> fr=%u' % (sctx, fr))
-		print('realcnt=',realcnt)
+				logger.debug('sctx=<%s> fr=%u' % (sctx, fr))
+		logger.debug('realcnt=%s' % realcnt)
 
 		######################## FIXME: we should levenshtein-score suggestions from
 		######################## alternatives(), but not from soundsLike(), since it makes
@@ -443,7 +452,7 @@ class Chick:
 				# kFreq / kCnt 20/32
 				realcnt2[k] = (int(kSound == tokSound and k != toks), kFreq/kCnt, kCnt, kFreq, kLev)
 
-		print("realcnt2'=",realcnt2)
+		logger.debug("realcnt2'={}",realcnt2)
 
 		"""
 		remove any suggestions that do not have suggestions for each ngram
@@ -459,16 +468,16 @@ class Chick:
 		the fact that people talk about their dogs more than fog kills us here.
 		"""
 		reallink = rsort1(realcnt2.items())
-		print('reallink=',reallink)
+		logger.debug('reallink=%s' % reallink)
 		reallink2 = list(takewhile(lambda x:x[1] > 0, reallink))
-		print('reallink2=',reallink2)
+		logger.debug('reallink2=%s' % reallink2)
 
 		if not reallink2:
 			return [] # got nothin'
 
 		# calculate the most-recommended change
 		realbest = reallink2[0]
-		print('realbest=',realbest)
+		logger.debug('realbest=' + str(realbest))
 
 		"""
 		if we didn't substantially improve the freq then don't recommend it.
@@ -486,10 +495,10 @@ class Chick:
 		bestsugg = [[r[2] for r in real if r[0] == realbest[0]] for real in realized]
 		# choose the first non-empty list
 		bestsugg2 = list(filter(None, bestsugg))[0][0]
-		print('bestsugg2=',bestsugg2)
+		logger.debug('bestsugg2=' + str(bestsugg2))
 		# now we know which ngram the change belongs to, figure out which it applies to
 		bestorig = [s[0] for s in sugg if bestsugg2 in s[1]][0]
-		print('bestorig=',bestorig)
+		logger.debug('bestorig=' + str(bestorig))
 
 		"""
 		return the suggestion that realizes the best change,
@@ -497,32 +506,33 @@ class Chick:
 		"""
 
 		ret = list(zip_longest(bestorig, bestsugg2, ''))
-		print('ret=',ret)
+		logger.debug('ret=%s' % ret)
 		# isolate the changes down to the word
 		# FIXME: how to handle deleted/inserted words?
 		ret2 = [(r[0], r[1]) for r in ret if r[0][0] != r[1]]
-		print('ret2=',ret2)
+		logger.debug('ret2=%s' % ret2)
 		return ret2
 
 	def suggest(self, txt, max_suggest=1, skip=[]):
 		"""
 		given a string, run suggest() and apply the first suggestion
 		"""
+		logger.debug('Chick.suggest(txt=%s max_suggest=%s, skip=%s)' % (txt, max_suggest, skip))
 
 		d = Doc(txt, self.w)
-		print('doc=', d.tok)
+		logger.debug('doc=%s' % d.tok)
 
 		# start out like a regular spellchecker
 		# address unknown tokens (ngram size 1) first
 		ut = list(d.unknownToks())
-		print('unknownToks=',ut)
+		logger.debug('unknownToks=%s' % ut)
 		# FIXME: this does not always work
 		# example: 'passified' becomes 'assified' instead of 'pacified'
 		# TODO: lots of mis-spellings are phonetic; we should attempt to "sound out"
 		# unknown words, possibly by breaking them into pieces and trying to assemble the sound
 		# from existing words
 		utChanges = [(u, self.w.correct(u[0])) for u in ut]
-		print('utChanges=',utChanges)
+		logger.debug('utChanges=%s' % utChanges)
 		utChanges2 = list(dropwhile(lambda x: x in skip, utChanges))
 		if utChanges2:
 			yield utChanges2
@@ -536,8 +546,8 @@ class Chick:
 
 		# order n-grams by unpopularity
 		ngsize = min(3, d.totalTokens())
-		print('ngsize=',ngsize,'d.totalTokens()=',d.totalTokens())
-		print('ngram(1) freq=',list(d.ngramfreq(self.g,1)))
+		logger.debug('ngsize=%s d.totalTokens()=%s' % (ngsize, d.totalTokens()))
+		logger.debug('ngram(1) freq=%s' % list(d.ngramfreq(self.g,1)))
 
 		# locate the least-common ngrams
 		# TODO: in some cases an ngram is unpopular, but overlapping ngrams on either side
@@ -551,28 +561,28 @@ sugg                       would undoubtedly be 3111
 sugg                             undoubtedly be changed 0
 		"""
 		least_common = sort1(d.ngramfreq(self.g, ngsize))
-		print('least_common=', least_common[:20])
+		logger.debug('least_common=%s' % least_common[:20])
 		least_common = list(takewhile(lambda x:x[1] <= 1, least_common))
 
 		while least_common:
 			target_ngram,target_freq = least_common.pop(0)
 			best = self.ngram_suggest(target_ngram, target_freq, d)
 			best2 = best[:max_suggest]
-			print('ngram_suggest=',best2)
+			logger.debug('ngram_suggest=%s' % best2)
 			yield best2
 			"""
 			if best:
 				# present our potential revisions
 				proposedChanges = best
-				print('proposedChanges...', proposedChanges)
+				logger.debug('proposedChanges...%s' % proposedChanges)
 				res = d.demoChanges(proposedChanges)
-				print(res)
+				logger.debug(res)
 				d.applyChanges(proposedChanges)
 			"""
 			# FIXME: save progress
 			#least_common = sort1(d.ngramfreq(self.g, ngsize))
 			#least_common = []
-			print('least_common=', least_common[:20], '...')
+			logger.debug('least_common=%s...' % least_common[:20])
 
 	def correct(self, txt):
 		"""
@@ -582,13 +592,13 @@ sugg                             undoubtedly be changed 0
 		d = Doc(txt, self.w)
 		changes = list(self.suggest(d, 1))
 		while changes:
-			print('changes=',changes)
+			logger.debug('changes=%s' % changes)
 			change = changes[0]
 			d.applyChanges(change)
-			print('change=',change,'after applyChanges d=',d)
+			logger.debug('change=%s after applyChanges d=%s' % (change, d))
 			d = Doc(d, self.w)
 			changes = list(self.suggest(d, 1))
 		res = str(d).decode('utf8')
-		print('correct res=',type(res),res)
+		logger.debug('correct res=%s %s' % (type(res),res))
 		return res
 
