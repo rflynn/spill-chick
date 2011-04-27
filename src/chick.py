@@ -533,8 +533,8 @@ class Chick:
 		utChanges = [(u, self.w.correct(u[0])) for u in ut]
 		logger.debug('utChanges=%s' % utChanges)
 		utChanges2 = list(dropwhile(lambda x: x in skip, utChanges))
-		if utChanges2:
-			yield utChanges2
+		for ut in utChanges2:
+			yield (ut[0], [ut])
 		#d.applyChanges(utChanges)
 
 		"""
@@ -568,7 +568,7 @@ sugg                             undoubtedly be changed 0
 			best = self.ngram_suggest(target_ngram, target_freq, d)
 			best2 = best[:max_suggest]
 			logger.debug('ngram_suggest=%s' % best2)
-			yield best2
+			yield (target_ngram, best2)
 			"""
 			if best:
 				# present our potential revisions
@@ -592,7 +592,7 @@ sugg                             undoubtedly be changed 0
 		changes = list(self.suggest(d, 1))
 		while changes:
 			logger.debug('changes=%s' % changes)
-			change = changes[0]
+			original,change = changes[0]
 			d.applyChanges(change)
 			logger.debug('change=%s after applyChanges d=%s' % (change, d))
 			d = Doc(d, self.w)
