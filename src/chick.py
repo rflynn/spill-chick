@@ -361,7 +361,6 @@ class Chick:
 		clen = len(context)
 
 		logger.debug('tlen=%d clen=%d' % (tlen, clen))
-		#context_ngrams = [tuple(context[i:i+tlen]) for i in range(clen-tlen+1)]
 		context_ngrams = list2ngrams(context, tlen)
 		logger.debug('context_ngrams=%s' % (context_ngrams,))
 
