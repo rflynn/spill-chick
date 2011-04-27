@@ -1,0 +1,32 @@
+$def with (text, replacements, lines)
+
+<form id="frm" method="post" action="/spill-chick/">
+<input type="hidden" name="target" value="(foo)">
+<table>
+	<tr>
+	<td valign="top" style="min-width:12em; text-align:right; padding-right:0.5em; border-right:1px solid #ccc">
+$if replacements:
+		<i>Click to replace</i><br>
+		<select name="replacement" multiple="multiple" size="3">
+		$for rep in replacements:
+			<option value="$loop.index" onClick="javascript:textboxSelect(document.getElementById('text'), $(rep[1]), $(rep[2]))">$(rep[0])</option>
+		</select>
+	<p><input type="submit" name="act" value="Replace">
+	<p><input type="submit" name="act" value="Skip to next...">
+$else:
+	
+<td valign="top" style="padding-left:0.5em">
+<b>Text</b><br>
+<textarea id="text" name="text" rows="10" cols="80">
+$web.websafe(text)</textarea>
+<br>
+$if replacements:
+	<input type="submit" name="act" value="Done">
+$else:
+	<input type="submit" name="act" value="Check">
+</table>
+</form>
+
+<hr>
+Lines:
+$lines

@@ -1,0 +1,40 @@
+$def with (page)
+
+<html>
+<head>
+	$if page.has_key('title'):
+		<title>$page.title</title>
+	$else:
+		<title>Spill-Chick</title>
+<style type="text/css">
+body { margin:0px }
+body, td, select, textarea, input { font-family: Arial, Helvetica, sans-serif; font-size:125% }
+table { border:0px solid #000 }
+td { border:0px solid #000 }
+select { background-color: #fff }
+h1 { margin-bottom: 1px }
+</style>
+<script src="static/spill-chick.js"></script>
+</head>
+<body>
+
+<div style="background-color:navy; color:#fff; padding:5px; font-size:150%; font-weight:bold">
+	Spill-Chick
+</div>
+
+$:page
+
+<hr>
+Session: $web.websafe(session)
+<hr>
+web.input: $web.input()
+<hr>
+web.input: $web.input(replacement={})['replacement']
+
+<!--
+x = web.input(myfile={})
+web.debug(x['myfile'].filename) # This is the filename
+-->
+
+
+</body></html>
