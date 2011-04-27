@@ -33,7 +33,7 @@ class GramsBin:
 		return self.ng.wordfreq(s)
 
 	def ngram_like(self, ng):
-		if len(ng) <= 2:
+		if len(ng) != 3:
 			return []
 		#print('like()=',ng)
 		ids = tuple(map(self.ng.word2id, ng))
