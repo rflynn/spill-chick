@@ -33,7 +33,7 @@ class Doc:
 
 	def tokenize(self, f):
 		self.lines = []
-		self.tok = [[]]
+		self.tok = []
 		for lcnt,line in enumerate(f):
 			self.lines.append(line)
 			line = line.lower() # used for index below
@@ -47,7 +47,7 @@ class Doc:
 				tpos = line.index(t, tpos)
 				ll.append((t, lcnt, len(ll), tpos))
 				tpos += len(t)
-			self.tok[-1] += ll
+			self.tok.append(ll)
 
 	def totalTokens(self):
 		return sum(len(ts) for ts in self.tok)
