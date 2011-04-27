@@ -71,7 +71,7 @@ static void mergefile(const struct ngram3map *m)
 int main(void)
 {
 	const char *path = "ngram3.bin";
-	struct ngram3map m = ngram3bin_init(path);
+	struct ngram3map m = ngram3bin_init(path, 1);
 	printf("map %llu bytes (%llu ngram3s)\n", m.size, m.size / sizeof(ngram3));
 	printf("sorting...\n");
 	sortfile(&m);

@@ -56,7 +56,7 @@ const char *	    ngramword_id2word(unsigned long id, const struct ngramword);
 void		    ngramword_totalfreqs(struct ngramword, const struct ngram3map *);
 void		    ngramword_fini(struct ngramword);
 
-struct ngram3map    ngram3bin_init(const char *path);
+struct ngram3map    ngram3bin_init(const char *path, int write);
 unsigned long	    ngram3bin_freq(ngram3 find, const struct ngram3map *);
 unsigned long	    ngram3bin_freq2(ngram3 find, const struct ngram3map *);
 ngram3 *	    ngram3bin_like(ngram3 find, const struct ngram3map *);

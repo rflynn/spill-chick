@@ -20,17 +20,17 @@ void ngram3bin_str(const struct ngram3map m, FILE *f)
 	fprintf(f, "ngram3map(size=%llu)", m.size);
 }
 
-struct ngram3map ngram3bin_init(const char *path)
+struct ngram3map ngram3bin_init(const char *path, int write)
 {
 	struct stat st;
 	struct ngram3map m = { NULL, -1, 0 };
 	if (!stat(path, &st))
 	{
 		//printf("stat(\"%s\") size=%llu\n", path, (unsigned long long)st.st_size);
-		if (-1 != (m.fd = open(path, O_RDWR)))
+		if (-1 != (m.fd = open(path, write ? O_RDWR : O_RDONLY)))
 		{
 			m.size = st.st_size;
-			m.m = mmap(NULL, m.size, PROT_READ | PROT_WRITE, MAP_SHARED, m.fd, 0);
+			m.m = mmap(NULL, m.size, PROT_READ | (write ? PROT_WRITE : 0), MAP_SHARED, m.fd, 0);
 			if (MAP_FAILED == m.m)
 			{
 				perror("mmap");

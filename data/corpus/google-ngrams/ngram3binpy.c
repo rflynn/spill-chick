@@ -235,9 +235,9 @@ static PyObject * ngram3bin_new(PyObject *self, PyObject *args)
 	char *ngrampath = NULL;
 	if (PyArg_ParseTuple(args, "ss", &wordpath, &ngrampath))
 	{
-		obj->wordmap = ngram3bin_init(wordpath);
+		obj->wordmap = ngram3bin_init(wordpath, 0);
 		obj->word    = ngramword_load(obj->wordmap);
-		obj->ngramap = ngram3bin_init(ngrampath);
+		obj->ngramap = ngram3bin_init(ngrampath, 0);
 		obj->worddict = worddict_new(obj->word);
 		ngramword_totalfreqs(obj->word, &obj->ngramap);
 		Py_INCREF(obj->worddict);
