@@ -511,7 +511,7 @@ class Chick:
 		logger.debug('ret=%s' % ret)
 		# isolate the changes down to the word
 		# FIXME: how to handle deleted/inserted words?
-		ret2 = [(r[0], r[1]) for r in ret if r[0][0] != r[1]]
+		ret2 = [r for r in ret if r[0][0] != r[1]]
 		logger.debug('ret2=%s' % ret2)
 		return ret2
 
