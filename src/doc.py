@@ -38,11 +38,7 @@ class Doc:
 			self.lines.append(line)
 			line = line.lower() # used for index below
 			toks = gram.tokenize(line)
-			if toks == ['\n'] or toks == []:
-				if self.tok[-1] != []:
-					self.tok.append([])
-				continue
-			if toks[-1] == '\n':
+			if toks and toks[-1] == '\n':
 				toks.pop()
 			#self.docwords.update(toks) # add words to local dictionary
 			tpos = 0
