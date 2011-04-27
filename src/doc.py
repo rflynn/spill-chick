@@ -84,20 +84,34 @@ class Doc:
 			if line == 0:
 				return None
 			line -= 1
-			index = len(self.tok[line])-1
+			while line >= 0 and self.tok[line] == []:
+				line -= 1
+			if line == -1:
+				return None
+			index = len(self.tok[line]) - 1
 		else:
 			index -= 1
+		if index >= len(self.tok[line]):
+			# if the first line is empty we need this
+			return None
 		return self.tok[line][index]
 
 	def ngram_next(self, ngpos):
 		_,line,index,_ = ngpos
-		if index == len(self.tok[line])-1:
-			if line == len(self.tok)-1:
-				return None
+		if line >= len(self.tok):
+			return None
+		if index >= len(self.tok[line]):
 			line += 1
+			while line < len(self.tok) and self.tok[line] == []:
+				line += 1
+			if line >= len(self.tok):
+				return None
 			index = 0
 		else:
 			index += 1
+		if index >= len(self.tok[line]):
+			# if the last line is empty we need this
+			return None
 		return self.tok[line][index]
 
 	def ngram_context(self, ngpos, size):
