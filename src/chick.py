@@ -451,7 +451,7 @@ class Chick:
 				# kFreq / kCnt 20/32
 				realcnt2[k] = (int(kSound == tokSound and k != toks), kFreq/kCnt, kCnt, kFreq, kLev)
 
-		logger.debug("realcnt2'={}",realcnt2)
+		logger.debug("target_freq=%s realcnt2'=%s" % (target_freq, realcnt2,))
 
 		"""
 		remove any suggestions that do not have suggestions for each ngram
