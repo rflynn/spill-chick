@@ -25,16 +25,8 @@ h1 { margin-bottom: 1px }
 $:page
 
 <hr>
-Session: $web.websafe(session)
+Session: $session
 <hr>
 web.input: $web.input()
-<hr>
-web.input: $web.input(replacement={})['replacement']
-
-<!--
-x = web.input(myfile={})
-web.debug(x['myfile'].filename) # This is the filename
--->
-
 
 </body></html>
