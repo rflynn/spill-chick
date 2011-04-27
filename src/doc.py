@@ -21,11 +21,20 @@ class Doc:
 		#self.docwords = collections.Counter()	# local {token:freq}
 		self.tokenize(f)
 
+	def __str__(self):
+		s = '\n'.join(self.lines)
+		return s
+
+	def __repr__(self):
+		return 'Doc(%s)' % str(self)
+
+	def __iter__(self):
+		return iter(self.lines)
+
 	def tokenize(self, f):
 		self.lines = []
 		self.tok = [[]]
 		for lcnt,line in enumerate(f):
-			line = line.decode('utf8')
 			self.lines.append(line)
 			line = line.lower() # used for index below
 			toks = gram.tokenize(line)
