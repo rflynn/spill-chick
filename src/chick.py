@@ -197,7 +197,7 @@ class Chick:
 		else:
 			# remove any words we've never seen
 			phonwords2 = [[[w for w in p if self.g.freqs(w) > minfreq] for p in pw] for pw in phonwords]
-			logger.debug('phonwords2=', phonwords2)
+			logger.debug('phonwords2=%s' % (phonwords2,))
 			# remove any signatures that contain completely empty items after previous
 			phonwords3 = [pw for pw in phonwords2 if all(pw)]
 			logger.debug('phonwords3=%s' % phonwords3)
@@ -353,23 +353,23 @@ class Chick:
 		[S(a,b,c), S(b,c,d), S(c,d,e), S(d,e,f), S(e,f,g)]
 		"""
 
-		logger.debug('target_ngram=' + str(target_ngram))
+		logger.debug('target_ngram=%s' % (target_ngram,))
 		tlen = len(target_ngram)
 
 		context = list(d.ngram_context(target_ngram, tlen))
-		logger.debug('context=' + str(context))
+		logger.debug('context=%s' % (context,))
 		clen = len(context)
 
 		logger.debug('tlen=%d clen=%d' % (tlen, clen))
 		#context_ngrams = [tuple(context[i:i+tlen]) for i in range(clen-tlen+1)]
 		context_ngrams = list2ngrams(context, tlen)
-		logger.debug('context_ngrams=%s' % context_ngrams)
+		logger.debug('context_ngrams=%s' % (context_ngrams,))
 
 		# gather suggestions for each ngram overlapping target_ngram
 		sugg = [(ng, self.do_suggest(ng, self.g.freq([x[0] for x in ng]), context_ngrams, d))
 			for ng in context_ngrams]
 
-		logger.debug('sugg=%s' % sugg)
+		logger.debug('sugg=%s' % (sugg,))
 		for ng,su in sugg:
 			for s in su:
 				logger.debug('sugg %s%s %u' % (' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
@@ -519,7 +519,7 @@ class Chick:
 		logger.debug('Chick.suggest(txt=%s max_suggest=%s, skip=%s)' % (txt, max_suggest, skip))
 
 		d = Doc(txt, self.w)
-		logger.debug('doc=%s' % d.tok)
+		logger.debug('doc=%s' % d)
 
 		# start out like a regular spellchecker
 		# address unknown tokens (ngram size 1) first
