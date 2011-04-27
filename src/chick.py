@@ -133,8 +133,8 @@ class Chick:
 		logger.debug('loading...')
 		logger.debug('  corpus...')
 		self.g = GramsBin(
-			'../data/corpus/google-ngrams/word.bin',
-			'../data/corpus/google-ngrams/ngram3.bin')
+			'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/word.bin',
+			'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/ngram3.bin')
 		self.w = Words(NGram3BinWordCounter(self.g.ng))
 		logger.debug('  phon')
 		self.p = Phon(self.w)
