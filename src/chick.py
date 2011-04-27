@@ -317,13 +317,13 @@ class Chick:
 			didPhon = False
 		partial = list(product(*part_pop))
 		partial += list(Chick.permjoin(toks))[1:]
-		logger.debug('partial=%s' % partial)
+		logger.debug('partial=%s...' % partial[:50])
 		best = partial
 		# NOTE: i really want izip_longest() but it's not available!
 		if best and len(best[0]) < len(target_ngram):
 			best[0] = tuple(list(best[0]) + [''])
 		best = [x[0] for x in rsort1([(b, self.g.freq(Chick.canon(b))) for b in best])]
-		logger.debug('%s best=%s' % (lineno(), best))
+		logger.debug('%s best=%s' % (lineno(), best[:50]))
 		# if our best suggestions are no more frequent than what we started with, give up!
 		"""
 		if best and g.freq(canon(best[0])) <= freq:
