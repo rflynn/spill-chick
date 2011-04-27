@@ -17,8 +17,8 @@ Group:
 	numbers and any punctuation
 		group things like dates, times, ip addresses, etc. into a single token
 """
-TokRgxNL = re.compile('\d+(?:[^\w\s]+\d+)*|\w+|\n')
-TokRgx = re.compile('\d+(?:[^\w\s]+\d+)*|\w+')
+TokRgxNL = re.compile('\d+(?:[^\w\s]+\d+)*|\w+|\n', re.UNICODE)
+TokRgx = re.compile('\d+(?:[^\w\s]+\d+)*|\w+', re.UNICODE)
 def tokenize(str):
 	return re.findall(TokRgxNL, str.lower())
 def tokenize_no_nl(str):
