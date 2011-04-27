@@ -255,7 +255,7 @@ class Chick:
 			for suf in Chick.permjoin(l[2:]):
 				yield [l[0]+l[1]] + suf
 
-	def do_suggest(self, target_ngram, freq, ctx, d):
+	def do_suggest(self, target_ngram, target_freq, ctx, d):
 		"""
 		given an infrequent ngram from a document, attempt to calculate a more frequent one
 		that is similar textually and/or phonetically but is more frequent
@@ -265,7 +265,7 @@ class Chick:
 		logger.debug('toks=%s' % toks)
 
 		# find potential alternative tokens for the tokens in the unpopular ngrams
-		alt = dict([(t, self.alternatives(d,t,freq)) for t in toks])
+		alt = dict([(t, self.alternatives(d,t,target_freq)) for t in toks])
 		logger.debug('alt=%s' % alt)
 
 		# list all ngrams containing partial matches for our ngram
@@ -293,7 +293,7 @@ class Chick:
 		"""
 		if not all(part_pop) or part_pop == [[t] for t in toks]:
 			didPhon = True
-			phong = self.phonGuess(toks, freq)
+			phong = self.phonGuess(toks, target_freq)
 			logger.debug('phong=%s' % phong)
 			if phong != []:
 				part_pop = phong
@@ -342,7 +342,7 @@ class Chick:
 			return tuple(list(ng)[:-1])
 		return ng
 
-	def ngram_suggest(self, target_ngram, freq, d):
+	def ngram_suggest(self, target_ngram, target_freq, d):
 		"""
 		we calculate ngram context and collect solutions for each context
 		permutation containing the target. then merge these suggestions
@@ -438,7 +438,7 @@ class Chick:
 
 		realcnt2 = {}
 		for k,(kFreq,kCnt) in realcnt.items():
-			if kFreq >= freq:
+			if kFreq >= target_freq:
 				# FIXME: too fragile. we want to be able to correct phonic mis-spellings
 				# and for short phrases phonics is more important than score
 				# but for longer things valuing sound-a-likes means we recommend
