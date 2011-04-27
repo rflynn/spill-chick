@@ -7,8 +7,10 @@
 Test our word/grammar algorithm
 """
 
-import sys, re
+import sys, re, logging
 from chick import Chick
+
+logger = logging.getLogger('spill-chick')
 
 def load_tests():
 	# load test cases
@@ -35,11 +37,11 @@ def test():
 	Tests = load_tests()
 	passcnt = 0
 	for str,exp in Tests:
-		print('Test str=',str,'exp=',exp)
+		logging.debug('Test str=',str,'exp=',exp)
 		res = chick.correct(str)
 		passcnt += res == exp
-		print('-----------','pass' if res == exp else 'fail','------------')
-	print('Tests %u/%u passed.' % (passcnt, len(Tests)))
+		logger.debug('----------- %s -------------' % ('pass' if res == exp else 'fail',))
+	logger.debug('Tests %u/%u passed.' % (passcnt, len(Tests)))
 
 def profile_test():
 	import cProfile, pstats
