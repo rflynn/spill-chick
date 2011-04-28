@@ -37,21 +37,12 @@ class check:
 
 	def GET(self):
 		session.kill()
-		#session['target'] = None
-		#session['replacements'] = []
-		#session['skip'] = []
 		return render.check('', [], [], 0, [])
 
 	def POST(self):
 		start_time = time()
 		text = web.input().get('text', '').decode('utf8')
 		lines = text.split('\r\n')
-		sugg2 = []
-
-		"""
-Session: <Storage {'skip': [], 'replacements': [((u'yo', 0, 4, 20), u'you')], 'target': ((u'hell', 0, 0, 0), (u'their', 0, 1, 5), (u'how', 0, 2, 12)), 'session_id': 'cf92623f6f08ebdc1b4e383a02d48d33ad88b7a0', 'ip': u'127.0.0.1'}>
-web.input: <Storage {'text': u'hell their. how are yo?', 'act': u'Check'}>
-		"""
 
 		act = web.input().get('act', '')
 		if act == 'Replace':
