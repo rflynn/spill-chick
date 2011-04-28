@@ -74,6 +74,10 @@ def lineno():
     """Returns the current line number in our program."""
     return inspect.currentframe().f_back.f_lineno
 
+# TODO: modify levenshtein to weight score based on what has changed;
+# - transpositions should count less than insertions/deletions
+# - changes near the front of the word should count more than the end
+# - for latin alphabets changes to vowels should count less than consonants
 def levenshtein(a,b):
 	"Calculates the Levenshtein distance between a and b."
 	n, m = len(a), len(b)
