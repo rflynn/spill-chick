@@ -321,7 +321,7 @@ class Chick:
 			didPhon = False
 		partial = list(product(*part_pop))
 		partial += list(Chick.permjoin(toks))[1:]
-		logger.debug('partial=%s...' % partial[:50])
+		logger.debug('partial=(len:%d)%s...' % (len(partial), partial[:50]))
 		best = partial
 		# NOTE: i really want izip_longest() but it's not available!
 		if best and len(best[0]) < len(target_ngram):
