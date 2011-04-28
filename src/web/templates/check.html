@@ -1,10 +1,11 @@
 $def with (text, replacements, lines, elapsed, suggestions)
 
 <form id="frm" method="post" action="/spill-chick/">
-<table>
+<table id="checktbl">
 	<tr>
-	<td valign="top" style="min-width:12em; text-align:right; padding-right:0.5em; border-right:1px solid #ccc">
+	<td valign="top" style="min-width:12em; text-align:right">
 $if replacements:
+	<div style="border-right:1px solid #cc0; padding-right:0.5em">
 		<i>Replacements</i><br>
 		<select name="replacement_index" multiple="multiple" size="5">
 		$for rep in replacements:
@@ -12,16 +13,17 @@ $if replacements:
 		</select>
 	<p><input type="submit" name="act" value="Replace">
 	<p><input type="submit" name="act" value="Skip to next...">
+	</div>
 $else:
 	
 <td valign="top" style="padding-left:0.5em">
-<b>Text</b><br>
-<textarea id="text" name="text" rows="10" cols="80">$web.websafe(text)</textarea>
+Text<br>
+<textarea id="text" name="text" rows="10" cols="80">$text</textarea>
 <br>
 $if replacements:
 	<input type="submit" name="act" value="Done">
 $else:
-	<input type="submit" name="act" value="Check">
+	<input type="submit" name="act" value="Chick Spilling">
 </table>
 </form>
 

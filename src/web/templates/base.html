@@ -2,27 +2,27 @@ $def with (page)
 
 <html>
 <head>
-	$if page.has_key('title'):
-		<title>$page.title</title>
-	$else:
-		<title>Spill-Chick</title>
+$if page.has_key('title'):
+	<title>$page.title</title>
+$else:
+	<title>Spill-Chick</title>
 <style type="text/css">
 body { margin:0px; background:#fff }/*url(static/splash.png) no-repeat -70px -90px }*/
 body, td, select, textarea, input { font-family: Tahoma, Geneva, sans-serif; font-size:125% }
-table { border:0px solid #000 }
-td { border:0px solid #000 }
+#checktbl { margin-top:3px }
 select { background-color: #fff }
 h1 { margin-bottom: 1px }
+hr { border:0px; height:1px; color:#990; background-color:#990 }
 textarea, select { background-color:#ffc }
-input { background-color:#000; color:#fff }
+input { background-color:#ee6; color:#330 }
 </style>
 <script src="static/spill-chick.js"></script>
 </head>
 <body>
 
-<div style="background-color:#000; padding:5px">
-<img src="static/logo.jpg" style="margin:0px; vertical-align:middle" alt="" height="48" width="48">
-<a style="color:#fff; font-size:40px; font-weight:bold; vertical-align:middle">Spill-Chick</a>
+<div style="background-color:#cc0; margin:0px; padding:3px; border-bottom:1px solid #990">
+<a href="/spill-chick/"><img src="static/chick32.gif" style="margin:0px; border:0px solid #999; vertical-align:middle" alt="" border="0"></a>
+<a style="color:#330; font-size:24px; font-weight:bold; vertical-align:middle">Spill-Chick</a>
 </div>
 
 $:page
