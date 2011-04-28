@@ -14,6 +14,7 @@ There are all sorts of typing errors one can make.
 	word merging/splitting ................. always miss spelling stuff
 	botched idioms ......................... for all intensive purposes
 	word omission .......................... oops, I the word
+	word duplication ....................... and it does does also
 	inconsistency of proper nouns .......... Julius Seizure
 
 It is inspired by 'Ode To My Spell Checker', which contains no spelling
