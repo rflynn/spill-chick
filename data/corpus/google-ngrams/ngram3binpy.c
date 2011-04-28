@@ -218,11 +218,6 @@ static PyObject * worddict_new(struct ngramword w)
 	{
 		PyObject *v = PyLong_FromUnsignedLong(id);
 		PyObject *k = PyBytes_FromStringAndSize(wl->str, wl->len);
-#if 0
-		if (id < 10)
-			printf("worddict %s(%ld):%lu\n",
-				PyBytes_AS_STRING(k), PyBytes_GET_SIZE(k), PyLong_AsLong(v));
-#endif
 		(void)PyDict_SetItem(d, k, v);
 	}
 	return d;
