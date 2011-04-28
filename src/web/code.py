@@ -86,7 +86,7 @@ class check:
 			session['replacements'] = suggs
 
 		elapsed = round(time() - start_time, 2)
-		return render.check(text, sugg2, lines, elapsed, suggs)
+		return render.check(text, sugg2, lines, elapsed, suggestions)
 
 if  __name__ == '__main__':
 	app.run()
