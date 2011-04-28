@@ -575,6 +575,8 @@ sugg                             undoubtedly be changed 0
 			target_ngram,target_freq = least_common.pop(0)
 			best = self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
 			logger.debug('ngram_suggest=%s' % best)
+			if not best:
+				continue
 			yield (target_ngram, best)
 			logger.debug('least_common=%s...' % least_common[:20])
 
