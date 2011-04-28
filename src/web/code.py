@@ -51,7 +51,7 @@ class check:
 				d = Doc(lines, chick.w)
 				replacements = session.get('replacements')
 				if replacement_index <= len(replacements):
-					replacement = [replacements[replacement_index-1]]
+					replacement = replacements[replacement_index-1]
 					d.applyChanges(replacement)
 					text = str(d)
 					lines = d.lines
