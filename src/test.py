@@ -11,6 +11,9 @@ import sys, re, logging
 from chick import Chick
 
 logger = logging.getLogger('spill-chick')
+hdlr = logging.StreamHandler(sys.stderr)
+logger.addHandler(hdlr)
+logger.setLevel(logging.DEBUG)
 
 def load_tests():
 	# load test cases
@@ -37,8 +40,9 @@ def test():
 	Tests = load_tests()
 	passcnt = 0
 	for str,exp in Tests:
-		logging.debug('Test str=',str,'exp=',exp)
+		logger.debug('Test str=%s exp=%s' % (str, exp))
 		res = chick.correct(str)
+		logger.debug('exp=%s(%s) res=%s(%s)' % (exp, type(exp), res, type(res)))
 		passcnt += res == exp
 		logger.debug('----------- %s -------------' % ('pass' if res == exp else 'fail',))
 	logger.debug('Tests %u/%u passed.' % (passcnt, len(Tests)))
