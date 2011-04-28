@@ -448,7 +448,7 @@ class Chick:
 				# kCnt 21/32
 				# kFreq 20/32
 				# kFreq / kCnt 20/32
-				realcnt2[k] = (int(kSound == tokSound and k != toks), kFreq/kCnt, kCnt, kFreq, kLev)
+				realcnt2[k] = (int(kSound == tokSound and k != toks and kFreq > target_freq), kFreq/kCnt, kCnt, kFreq, kLev)
 
 		logger.debug("target_freq=%s realcnt2'=%s" % (target_freq, realcnt2,))
 
