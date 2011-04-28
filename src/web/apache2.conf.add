@@ -1,0 +1,14 @@
+
+# append something like this to apache2.conf to get our web.py app running
+
+# spill-chick web.py
+#LoadModule wsgi_module modules/mod_wsgi.so
+WSGIScriptAlias /spill-chick /var/www/spill-chick/code.py
+Alias /spill-chick/static /var/www/spill-chick/static/
+Alias /spill-chick/templates /var/www/spill-chick/templates/
+AddType text/html .py
+<Directory /var/www/spill-chick/>
+	Order deny,allow
+	Allow from all
+</Directory>
+
