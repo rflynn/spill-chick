@@ -390,6 +390,7 @@ class Chick:
 			sugg is a list of changesets.
 			return map ctx x sugg
 			"""
+			logger.debug('realize_suggest(ctx=%s sugg=%s)' % (ctx, sugg))
 			return [[apply_suggest(ctx, ng, s) for s in su] for ng,su in sugg]
 
 		# merge suggestions based on what they change
