@@ -328,12 +328,6 @@ class Chick:
 			best[0] = tuple(list(best[0]) + [''])
 		best = [x[0] for x in rsort1([(b, self.g.freq(Chick.canon(b))) for b in best])]
 		logger.debug('%s best=%s' % (lineno(), best[:50]))
-		# if our best suggestions are no more frequent than what we started with, give up!
-		"""
-		if best and g.freq(canon(best[0])) <= freq:
-			best = []
-		logger.debug('best=',best)
-		"""
 		if len(best) > 5:
 			best = best[:5]
 		return best
@@ -550,7 +544,6 @@ class Chick:
 		utChanges2 = list(dropwhile(lambda x: x in skip, utChanges))
 		for ut in utChanges2:
 			yield (ut[0], [ut])
-		#d.applyChanges(utChanges)
 
 		"""
 		now the hard part.
@@ -583,18 +576,6 @@ sugg                             undoubtedly be changed 0
 			best = self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
 			logger.debug('ngram_suggest=%s' % best)
 			yield (target_ngram, best)
-			"""
-			if best:
-				# present our potential revisions
-				proposedChanges = best
-				logger.debug('proposedChanges...%s' % proposedChanges)
-				res = d.demoChanges(proposedChanges)
-				logger.debug(res)
-				d.applyChanges(proposedChanges)
-			"""
-			# FIXME: save progress
-			#least_common = sort1(d.ngramfreq(self.g, ngsize))
-			#least_common = []
 			logger.debug('least_common=%s...' % least_common[:20])
 
 	def correct(self, txt):
