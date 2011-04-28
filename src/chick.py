@@ -546,7 +546,7 @@ class Chick:
 		# from existing words
 		utChanges = [(u, self.w.correct(u[0])) for u in ut]
 		logger.debug('utChanges=%s' % utChanges)
-		utChanges2 = list(dropwhile(lambda x: x in skip, utChanges))
+		utChanges2 = list(filter(lambda x: x not in skip, utChanges))
 		for ut in utChanges2:
 			yield (ut[0], [ut])
 
