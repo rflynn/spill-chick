@@ -122,13 +122,13 @@ class Doc:
                 a b c d e f g
 		"""
 		before, ng = [], ngpos[0]
-		for i in range(size):
+		for i in range(size-1):
 			ng = self.ngram_prev(ng)
 			if not ng:
 				break
 			before.insert(0, ng)
 		after, ng = [], ngpos[-1]
-		for i in range(size):
+		for i in range(size-1):
 			ng = self.ngram_next(ng)
 			if not ng:
 				break
