@@ -23,7 +23,7 @@ def load_tests():
 			if len(l) > 1 and l[0] != '#':
 				before, after = l.split(' : ')
 				after = re.sub('\s*#.*', '', after.rstrip(), re.U) # replace comments
-				Tests.append(([before],[after]))
+				Tests.append(([before],after))
 	return Tests
 
 # TODO: Word() and Grams() should be merged, they're essentially the same
