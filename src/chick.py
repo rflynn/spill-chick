@@ -342,7 +342,7 @@ class Chick:
 			return tuple(list(ng)[:-1])
 		return ng
 
-	def ngram_suggest(self, target_ngram, target_freq, d):
+	def ngram_suggest(self, target_ngram, target_freq, d, max_suggest=1):
 		"""
 		we calculate ngram context and collect solutions for each context
 		permutation containing the target. then merge these suggestions
@@ -473,47 +473,54 @@ class Chick:
 		if not reallink2:
 			return [] # got nothin'
 
+		bestsuggestions = []
+
+		logger.debug('max_suggest=%s' % max_suggest)
 		# calculate the most-recommended change
-		realbest = reallink2[0]
-		logger.debug('realbest=' + str(realbest))
+		for realbest in reallink2[:max_suggest]:
+			logger.debug('realbest=' + str(realbest))
 
-		"""
-		if we didn't substantially improve the freq then don't recommend it.
-		prevent popular phrases from overriding similar but less frequent ones
-		"""
-		# TODO: for interactive spell-checking we don't want to have hard, arbitrary limits;
-		# instead we want to calculate all potential "improvements" and present them to the
-		# user in descending order of magnitude
-		if realbest[1][2] <= target_freq ** 2:
-			logger.debug('realbest=%s not popular enough vs target_freq=%s' % (realbest, target_freq))
-			return []
+			"""
+			if we didn't substantially improve the freq then don't recommend it.
+			prevent popular phrases from overriding similar but less frequent ones
+			"""
+			# TODO: for interactive spell-checking we don't want to have hard, arbitrary limits;
+			# instead we want to calculate all potential "improvements" and present them to the
+			# user in descending order of magnitude.
+			# we can't do this currently because we're just too slow.
+			if realbest[1][2] <= target_freq ** 2:
+				logger.debug('realbest=%s not popular enough vs target_freq=%s' % (realbest, target_freq))
+				#return []
+				continue
 
-		"""
-		now that we've realized our suggestions and chosen a solution to recommend,
-		we need to work backwards to figure out which part of 'sugg' produces this
-		answer and return it
-		"""
-		# list of lists of suggestions that produce realbest
-		bestsugg = [[r[2] for r in real if r[0] == realbest[0]] for real in realized]
-		# choose the first non-empty list
-		bestsugg2 = list(filter(None, bestsugg))[0][0]
-		logger.debug('bestsugg2=' + str(bestsugg2))
-		# now we know which ngram the change belongs to, figure out which it applies to
-		bestorig = [s[0] for s in sugg if bestsugg2 in s[1]][0]
-		logger.debug('bestorig=' + str(bestorig))
+			"""
+			now that we've realized our suggestions and chosen a solution to recommend,
+			we need to work backwards to figure out which part of 'sugg' produces this
+			answer and return it
+			"""
+			# list of lists of suggestions that produce realbest
+			bestsugg = [[r[2] for r in real if r[0] == realbest[0]] for real in realized]
+			# choose the first non-empty list
+			bestsugg2 = list(filter(None, bestsugg))[0][0]
+			logger.debug('bestsugg2=' + str(bestsugg2))
+			# now we know which ngram the change belongs to, figure out which it applies to
+			bestorig = [s[0] for s in sugg if bestsugg2 in s[1]][0]
+			logger.debug('bestorig=' + str(bestorig))
 
-		"""
-		return the suggestion that realizes the best change,
-		and the ngrampos it originates from
-		"""
+			"""
+			return the suggestion that realizes the best change,
+			and the ngrampos it originates from
+			"""
+			ret = list(zip_longest(bestorig, bestsugg2, ''))
+			logger.debug('ret=%s' % ret)
+			# isolate the changes down to the word
+			# FIXME: how to handle deleted/inserted words?
+			ret2 = [r for r in ret if r[0][0] != r[1]]
+			logger.debug('ret2=%s' % ret2)
+			bestsuggestions.append(ret2)
 
-		ret = list(zip_longest(bestorig, bestsugg2, ''))
-		logger.debug('ret=%s' % ret)
-		# isolate the changes down to the word
-		# FIXME: how to handle deleted/inserted words?
-		ret2 = [r for r in ret if r[0][0] != r[1]]
-		logger.debug('ret2=%s' % ret2)
-		return ret2
+		logger.debug('bestsuggestions=%s' % (bestsuggestions,))
+		return bestsuggestions
 
 	def suggest(self, txt, max_suggest=1, skip=[]):
 		"""
@@ -568,10 +575,9 @@ sugg                             undoubtedly be changed 0
 
 		while least_common:
 			target_ngram,target_freq = least_common.pop(0)
-			best = self.ngram_suggest(target_ngram, target_freq, d)
-			best2 = best[:max_suggest]
-			logger.debug('ngram_suggest=%s' % best2)
-			yield (target_ngram, best2)
+			best = self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
+			logger.debug('ngram_suggest=%s' % best)
+			yield (target_ngram, best)
 			"""
 			if best:
 				# present our potential revisions
@@ -595,10 +601,15 @@ sugg                             undoubtedly be changed 0
 		changes = list(self.suggest(d, 1))
 		while changes:
 			logger.debug('changes=%s' % changes)
-			original,change = changes[0]
+			changes2 = rsort1(changes)
+			logger.debug('changes2=%s' % changes2)
+			original,change = changes2[0]
+			change = change[0]
+			logger.debug('original=%s change=%s' % (original, change))
 			d.applyChanges(change)
 			logger.debug('change=%s after applyChanges d=%s' % (change, d))
 			d = Doc(d, self.w)
+			break # FIXME: loops forever
 			changes = list(self.suggest(d, 1))
 		res = str(d).decode('utf8')
 		logger.debug('correct res=%s %s' % (type(res),res))
