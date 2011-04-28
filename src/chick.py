@@ -475,6 +475,10 @@ class Chick:
 		bestsuggestions = []
 
 		logger.debug('max_suggest=%s' % max_suggest)
+
+		# suggestions must be this much better than the original to be considered
+		target_freq_improve_threshold = log(max(1,target_freq)) + 1.5
+
 		# calculate the most-recommended change
 		for realbest in reallink2[:max_suggest]:
 			logger.debug('realbest=' + str(realbest))
@@ -487,9 +491,10 @@ class Chick:
 			# instead we want to calculate all potential "improvements" and present them to the
 			# user in descending order of magnitude.
 			# we can't do this currently because we're just too slow.
-			if realbest[1][2] <= target_freq ** 2:
-				logger.debug('realbest=%s not popular enough vs target_freq=%s' % (realbest, target_freq))
-				#return []
+			realbest_score = log(max(1,realbest[1][1]))
+			if realbest_score < target_freq_improve_threshold:
+				logger.debug('realbest=%s (%s) not popular enough vs target_freq=%s(%s)' % \
+					(realbest, realbest_score, target_freq, target_freq_improve_threshold))
 				continue
 
 			"""
