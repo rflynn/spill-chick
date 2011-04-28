@@ -10,6 +10,9 @@ import unittest
 import math
 import gram
 
+import logging
+logger = logging.getLogger('spill-chick')
+
 """
 Tokenized contents of a single file
 Tokens associated with positional data to faciliate changes
@@ -180,6 +183,7 @@ class Doc:
 		given a list of positional ngrams and a list of replacements,
 		apply the changes and return a copy of the updated file
 		"""
+		logger.debug('Doc.demoChanges changes=%s' % (changes,))
 		lines = self.lines[:]
 		off = [0] * len(lines)
 		for change in changes:
