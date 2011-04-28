@@ -59,9 +59,8 @@ class check:
 		elif act == 'Skip to next...':
 			session['skip'].append(session['target'])
 		elif act == 'Done':
-			session['target'] = None
-			session['replacements'] = []
-			session['skip'] = []
+			# nuke target, replacements, skip, etc.
+			session.kill()
 
 		sugg2 = []
 		suggs = []
