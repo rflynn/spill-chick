@@ -574,7 +574,7 @@ sugg                             undoubtedly be changed 0
 		"""
 		least_common = sort1(d.ngramfreq(self.g, ngsize))
 		logger.debug('least_common=%s' % least_common[:20])
-		least_common = list(takewhile(lambda x: x[0] not in skip, least_common))
+		least_common = list(dropwhile(lambda x: x[0] in skip, least_common))
 
 		while least_common:
 			target_ngram,target_freq = least_common.pop(0)
