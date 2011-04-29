@@ -25,6 +25,7 @@ typedef struct {
 	struct ngram3map wordmap;
 	struct ngram3map ngramap;
 	struct ngramword word;
+	ngram3bin_index ngramap_index;
 	PyObject *worddict;
 } ngram3bin;
 
@@ -235,6 +236,7 @@ static PyObject * ngram3bin_new(PyObject *self, PyObject *args)
 		obj->ngramap = ngram3bin_init(ngrampath, 0);
 		obj->worddict = worddict_new(obj->word);
 		ngramword_totalfreqs(obj->word, &obj->ngramap);
+		ngram3bin_index_init(&obj->ngramap_index, &obj->ngramap, &obj->word);
 		Py_INCREF(obj->worddict);
 	}
 	Py_INCREF(obj);
@@ -402,7 +404,7 @@ static PyObject *ngram3binpy_like(PyObject *self, PyObject *args)
 	{
 		if (obj->ngramap.m)
 		{
-			ngram3 *f = ngram3bin_like(find, &obj->ngramap);
+			ngram3 *f = ngram3bin_like_better(find, &obj->ngramap, &obj->ngramap_index);
 			res = ngram3_find_res2py(f);
 			free(f);
 		}

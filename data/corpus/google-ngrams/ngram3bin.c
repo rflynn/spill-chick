@@ -200,11 +200,177 @@ ngram3 * ngram3bin_like(ngram3 find, const struct ngram3map *m)
 	}
 	if (res)
 	{
-		res = ngram3_find_spacefor1more(res, ngcnt);
-		if (res)
+		if ((res = ngram3_find_spacefor1more(res, ngcnt)))
 			res[ngcnt].freq = 0; // sentinel
 	}
 	return res;
+}
+
+static unsigned long ngram3bin_like_xy_(ngram3 find, const struct ngram3map *m, ngram3 **res, unsigned long rescnt);
+static unsigned long ngram3bin_like_x_z(ngram3 find, const struct ngram3map *m, ngram3 **res, unsigned long rescnt);
+static unsigned long ngram3bin_like__yz(ngram3 find, const struct ngram3map *m, ngram3 **res, unsigned long rescnt,
+					ngram3bin_index *idx);
+
+/*
+ * given an id 3-gram (x,y,z) and a list of ngram frequencies
+ * return matches (_,y,z) or (x,_,z) or (x,y,_)
+ *
+ * note: this is really the crux of the application: finding ngram-based context.
+ * this function will be run thousands of times for every page of text our application checks.
+ * 'm' represents 10s of millions of records totalling 100s of MBs.
+ * efficiency is critical.
+ *
+ * note: upgrade of ngram3bin_like(), which performed a sequential scan of the entire 'm' every time.
+ * this was simple and effective but just too inefficient.
+ * so, we broke up the 3 types of matches performed into separate functions which incorporate binary
+ * searches, which should reduce CPU-memory traffic considerably.
+ * update: preliminary profiling suggests this is ~40x faster.
+ */
+ngram3 * ngram3bin_like_better(ngram3 find, const struct ngram3map *m, ngram3bin_index *idx)
+{
+	ngram3 *res = NULL;
+	unsigned long rescnt = 0;
+	rescnt = ngram3bin_like_xy_(find, m, &res, rescnt);
+	rescnt = ngram3bin_like_x_z(find, m, &res, rescnt);
+	rescnt = ngram3bin_like__yz(find, m, &res, rescnt, idx);
+	if (res)
+	{
+		if ((res = ngram3_find_spacefor1more(res, rescnt)))
+			res[rescnt].freq = 0; // sentinel
+	}
+	return res;
+}
+
+static int ngram3cmp_xy_(const void *va, const void *vb)
+{
+	const ngram3 *a = va,
+	             *b = vb;
+	if (a->id[0] != b->id[0]) return (int)(a->id[0] - b->id[0]);
+	if (a->id[1] != b->id[1]) return (int)(a->id[1] - b->id[1]);
+	return 0;
+}
+
+/*
+ * find entries in m matching (x,y,_) from find
+ * because m's contents are sorted we can use bsearch
+ */
+static unsigned long ngram3bin_like_xy_(ngram3 find, const struct ngram3map *m, ngram3 **res, unsigned long rescnt)
+{
+	const ngram3 *base = m->m;
+	const size_t nmemb = m->size / sizeof *base;
+	const ngram3 *bs = bsearch(&find, base, nmemb, sizeof *base, ngram3cmp_xy_);
+	if (bs)
+	{
+		const ngram3 *end = (ngram3*)((char*)m->m + m->size);
+		// at least one x,y_ exists, but many may exist and we can't be certain
+		// where in that range we have landed
+		// rewind to the beginning of the range...
+		while (bs > base && (bs-1)->id[0] == find.id[0] && (bs-1)->id[1] == find.id[1])
+			bs--;
+		// ...and then seek forward, capturing all (contiguous) matches
+		while (bs < end && bs->id[0] == find.id[0] && bs->id[1] == find.id[1])
+		{
+			*res = ngram3_find_spacefor1more(*res, rescnt);
+			if (!*res)
+				break;
+			(*res)[rescnt] = *bs;
+			rescnt++;
+			bs++;
+		}
+	}
+	return rescnt;
+}
+
+static int ngram3cmp_x__(const void *va, const void *vb)
+{
+	const ngram3 *a = va,
+		     *b = vb;
+	if (a->id[0] != b->id[0]) return (int)(a->id[0] - b->id[0]);
+	return 0;
+}
+
+/*
+ * find entries in m matching (x,_,z) from find
+ * because m's contents are sorted we can use bsearch
+ */
+static unsigned long ngram3bin_like_x_z(ngram3 find, const struct ngram3map *m, ngram3 **res, unsigned long rescnt)
+{
+	const ngram3 *base = m->m;
+	const size_t nmemb = m->size / sizeof *base;
+	const ngram3 *bs = bsearch(&find, base, nmemb, sizeof *base, ngram3cmp_x__);
+	if (bs)
+	{
+		const ngram3 *end = (ngram3*)((char*)m->m + m->size);
+		// rewind to the beginning of (x,_,_) range...
+		while (bs > base && (bs-1)->id[0] == find.id[0])
+			bs--;
+		// and then seek forward through all (x,_,_),
+		// recording any (x,_,z) matches
+		while (bs < end && bs->id[0] == find.id[0])
+		{
+			if (bs->id[2] == find.id[2])
+			{
+				*res = ngram3_find_spacefor1more(*res, rescnt);
+				if (!*res)
+					break;
+				(*res)[rescnt] = *bs;
+				rescnt++;
+			}
+			bs++;
+		}
+	}
+	return rescnt;
+}
+
+/*
+ * given find (x,y,z), search m for all matches of (_,y,z) with help of the index
+ * m entries are sorted by (x,y,z)
+ * idx is a length of the spans of entries with the same (x,_,_)
+ * search through m by idx[] records at a time.
+ * search sequential for small spans, bsearch large ones
+ */
+static unsigned long ngram3bin_like__yz(ngram3 find, const struct ngram3map *m,
+					ngram3 **res, unsigned long rescnt,
+					ngram3bin_index *idx)
+{
+#	define SPAN_LARGE 16 // arbitrary, somewhat-reasonable number
+	uint32_t *span = idx->span;
+	const ngram3 *mcur = m->m;
+	while (*span)
+	{
+		if (*span < SPAN_LARGE)
+		{
+			// small span, search sequentially
+			const ngram3 *mend = mcur + *span;
+			while (mcur < mend)
+			{
+				if (mcur->id[1] == find.id[1] &&
+				    mcur->id[2] == find.id[2])
+				{
+					if ((*res = ngram3_find_spacefor1more(*res, rescnt)))
+						(*res)[rescnt++] = *mcur;
+					mcur = mend;
+					break;
+				}
+				mcur++;
+			}
+		}
+		else
+		{
+			// large span, bsearch
+			const ngram3 *bs;
+			find.id[0] = mcur->id[0]; // first id must match(!)
+			if ((bs = bsearch(&find, mcur, *span, sizeof *mcur, ngram3cmp)))
+			{
+				if ((*res = ngram3_find_spacefor1more(*res, rescnt)))
+					(*res)[rescnt++] = *bs;
+			}
+			mcur += *span;
+		}
+		// mcur set to previous mcur + *span by this point
+		span++;
+	}
+	return rescnt;
 }
 
 /*
@@ -226,6 +392,53 @@ void ngramword_totalfreqs(struct ngramword w, const struct ngram3map *m)
 		for (i = 0; i < cnt; i++)
 			w.word[i].freq /= 2;
 	}
+}
+
+/*
+ * build an index that speeds out searches of (_,y,z) searches
+ * count the spans of consecutive id[0]s in m
+ * e.g. [(x,_,_),(x,_,_),(y,_,_),(z,_,_),(z,_,_),(z,_,_)]
+ *        |_______|       |       |_______________|
+ *            2           1               3
+ */
+int ngram3bin_index_init(ngram3bin_index *idx, const struct ngram3map *m, const struct ngramword *w)
+{
+	/*
+         * allocate enough space to hold a counter for every existing unique word,
+	 * even though not every word may necessarily be present in id[0]
+         */
+	idx->span = malloc((w->cnt + 1) * sizeof *idx->span);
+	if (idx->span)
+	{
+		unsigned long spanidx = 0,
+                              spancnt = 1;
+		const ngram3 *cur = m->m;
+		const ngram3 *end = (ngram3*)((char*)cur + m->size);
+		const ngram3 *nxt = cur+1;
+		while (nxt < end)
+		{
+			if (cur->id[0] == nxt->id[0])
+			{
+				spancnt++;
+			}
+			else
+			{
+				idx->span[spanidx] = spancnt;
+				spanidx++;
+				spancnt = 1;
+			}
+			cur = nxt;
+			nxt++;
+		}
+		idx->span[spanidx] = spancnt;
+		idx->span[spanidx+1] = 0; // sentinel
+	}
+	return !!idx->span;
+}
+
+void ngram3bin_index_fini(ngram3bin_index *idx)
+{
+	free(idx->span);
 }
 
 void ngram3bin_fini(struct ngram3map m)

@@ -50,6 +50,19 @@ typedef struct
 } ngram3;
 #pragma pack(pop)
 
+/*
+ * ngram3 is a sorted array of 3-grams (x,y,z)
+ * for each unique x, count the number of sequential records (x,_,_)
+ * this allows us to more efficiently search for (_,y,z)
+ *
+ * note: we don't need to track which id each span represents, we
+ * can retrieve it when necessary; we just need the number of records
+ */
+typedef struct
+{
+	uint32_t *span;
+} ngram3bin_index;
+
 struct ngramword    ngramword_load(const struct ngram3map);
 const unsigned long ngramword_word2id(const char *word, unsigned len, const struct ngramword);
 const char *	    ngramword_id2word(unsigned long id, const struct ngramword);
@@ -60,8 +73,12 @@ struct ngram3map    ngram3bin_init(const char *path, int write);
 unsigned long	    ngram3bin_freq(ngram3 find, const struct ngram3map *);
 unsigned long	    ngram3bin_freq2(ngram3 find, const struct ngram3map *);
 ngram3 *	    ngram3bin_like(ngram3 find, const struct ngram3map *);
+ngram3 *	    ngram3bin_like_better(ngram3 find, const struct ngram3map *, ngram3bin_index *);
 void		    ngram3bin_str (const struct ngram3map, FILE *);
 void		    ngram3bin_fini(struct ngram3map);
+
+int		    ngram3bin_index_init(ngram3bin_index *, const struct ngram3map *, const struct ngramword *);
+void		    ngram3bin_index_fini(ngram3bin_index *);
 
 int ngram3cmp(const void *, const void *);
 
