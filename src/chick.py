@@ -548,7 +548,7 @@ class Chick:
 		logger.debug('utChanges=%s' % utChanges)
 		utChanges2 = list(filter(lambda x: x not in skip, utChanges))
 		for ut in utChanges2:
-			yield (ut[0], [ut])
+			yield (ut[0], [[ut]])
 
 		"""
 		now the hard part.
