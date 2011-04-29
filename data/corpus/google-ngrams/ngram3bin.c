@@ -90,6 +90,7 @@ struct ngramword ngramword_load(const struct ngram3map m)
 
 /*
  * FIXME: O(n)
+ * note: this is mitigated by the python module by using a dict
  * if i added a stage at the beginning of this whole process and sorted words then we could
  * reduce this to O(log n)
  * we can also reduce the impact of this by converting all tokens in a document to their ids
@@ -445,6 +446,81 @@ void ngram3bin_fini(struct ngram3map m)
 {
 	munmap(m.m, m.size);
 	close(m.fd);
+}
+
+/*
+ * sort descending by frequency
+ */
+static int follows_cmp(const void *va, const void *vb)
+{
+	const ngram3 *a = va,
+	             *b = vb;
+	return (int)(b->freq - a->freq);
+}
+
+/*
+ * given a single word, return a list of words follow and their frequency
+ */
+ngram3 * ngram3bin_follows(const ngram3 *find, const struct ngram3map *m)
+{
+	uint32_t fid = find->id[0];
+	unsigned long ngcnt = 0;
+	ngram3 *cur = m->m;
+	const ngram3 *end = (ngram3*)((char*)cur + m->size);
+	ngram3 *res = NULL;
+	while (cur < end)
+	{
+		int foundindex;
+		if (cur->id[0] == fid)
+			foundindex = 1;
+		else if (cur->id[1] == fid)
+			foundindex = 2;
+		else
+			foundindex = 0;
+
+		if (foundindex)
+		{
+			int i;
+			// linear scan for already found...
+			for (i = 0; i < ngcnt; i++)
+			{
+				if (res[i].id[0] == cur->id[foundindex])
+				{
+					res[i].freq++;
+					if (i > 0 && res[i].freq > res[i-1].freq * 2)
+					{
+						// bring most common entries to front of list
+						ngram3 tmp = res[i];
+						res[i] = res[i-1];
+						res[i-1] = tmp;
+					}
+					break;
+				}
+			}
+			// didn't find, add another entry to list
+			if (i == ngcnt)
+			{
+				res = ngram3_find_spacefor1more(res, ngcnt);
+				if (!res)
+					break;
+				res[ngcnt].id[0] = cur->id[foundindex];
+				res[ngcnt].freq = 1;
+				ngcnt++;
+			}
+		}
+		cur++;
+	}
+	if (res)
+	{
+		res = ngram3_find_spacefor1more(res, ngcnt);
+		if (res)
+		{
+			res[ngcnt].freq = 0; // sentinel
+			// sort results
+			qsort(res, ngcnt, sizeof *res, follows_cmp);
+		}
+	}
+	return res;
 }
 
 #ifdef TEST

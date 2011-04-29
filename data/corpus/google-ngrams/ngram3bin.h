@@ -76,6 +76,7 @@ ngram3 *	    ngram3bin_like(ngram3 find, const struct ngram3map *);
 ngram3 *	    ngram3bin_like_better(ngram3 find, const struct ngram3map *, ngram3bin_index *);
 void		    ngram3bin_str (const struct ngram3map, FILE *);
 void		    ngram3bin_fini(struct ngram3map);
+ngram3 *	    ngram3bin_follows(const ngram3 *, const struct ngram3map *);
 
 int		    ngram3bin_index_init(ngram3bin_index *, const struct ngram3map *, const struct ngramword *);
 void		    ngram3bin_index_fini(ngram3bin_index *);

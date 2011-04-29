@@ -42,6 +42,7 @@ static PyObject *ngram3binpy_id2freq(PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_wordfreq(PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_freq   (PyObject *self, PyObject *args);
 static PyObject *ngram3binpy_like   (PyObject *self, PyObject *args);
+static PyObject *ngram3binpy_follows(PyObject *self, PyObject *args);
 
 static struct PyMethodDef ngram3bin_Methods[] = {
 	{ "word2id",	(PyCFunction) ngram3binpy_word2id,	METH_VARARGS,	NULL },
@@ -51,6 +52,7 @@ static struct PyMethodDef ngram3bin_Methods[] = {
 	{ "freq",	(PyCFunction) ngram3binpy_freq,		METH_VARARGS,	NULL },
 	{ "like",	(PyCFunction) ngram3binpy_like,		METH_VARARGS,	NULL },
 	{ "ngram3bin",	(PyCFunction) ngram3bin_new,		METH_VARARGS,	NULL },
+	{ "follows",	(PyCFunction) ngram3binpy_follows,	METH_VARARGS,	NULL },
 	{ NULL,		NULL,					0,		NULL }
 };
 
@@ -275,7 +277,7 @@ static PyObject *ngram3binpy_word2id(PyObject *self, PyObject *args)
 		}
 	}
 	if (!res)
-		res = PyLong_FromLong(0);
+		res = PyLong_FromLong(UNKNOWN_ID);
 	Py_INCREF(res);
 	return res;
 }
@@ -411,7 +413,57 @@ static PyObject *ngram3binpy_like(PyObject *self, PyObject *args)
 	}
 	else
 	{
-		res = PyLong_FromLong(0);
+		res = PyList_New(0);
+	}
+	return res;
+}
+
+/*
+ * given the results of an ngram3_follows() call,
+ * import them into a python list of 2-tuples [(word_id,freq),...]
+ */
+static PyObject * ngram3_follows_res2py(const ngram3 *f)
+{
+	PyObject *res = PyList_New(0);
+	Py_INCREF(res);
+	if (f)
+	{
+		const ngram3 *c = f;
+		while (c->freq)
+		{
+			PyObject *o, *t;
+			t = PyTuple_New(2);
+			o = PyLong_FromUnsignedLong(c->id[0]);
+			PyTuple_SetItem(t, 0, o);
+			Py_INCREF(o);
+			o = PyLong_FromUnsignedLong(c->freq);
+			PyTuple_SetItem(t, 1, o);
+			Py_INCREF(o);
+			PyList_Append(res, t);
+			Py_INCREF(t);
+			c++;
+		}
+	}
+	return res;
+}
+
+static PyObject *ngram3binpy_follows(PyObject *self, PyObject *args)
+{
+	PyObject *res = NULL;
+	ngram3bin *obj = (ngram3bin *)self;
+	ngram3 find;
+	if (PyArg_ParseTuple(args, "i", find.id+0))
+	{
+		if (obj->ngramap.m)
+		{
+			ngram3 *f = ngram3bin_follows(&find, &obj->ngramap);
+			res = ngram3_follows_res2py(f);
+			free(f);
+		}
+	}
+	else
+	{
+		res = PyList_New(0);
 	}
 	return res;
 }
