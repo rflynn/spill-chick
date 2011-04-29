@@ -64,6 +64,7 @@ class check:
 
 		sugg2 = []
 		suggs = []
+		suggestions = []
 
 		if act and act != 'Done':
 			logger.debug('suggest(lines=%s)' % (lines,))
