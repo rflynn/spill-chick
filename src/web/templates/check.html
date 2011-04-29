@@ -1,33 +1,33 @@
 $def with (text, replacements, lines, elapsed, suggestions)
 
 <form id="frm" method="post" action="/spill-chick/">
-<table id="checktbl">
+<table id="checktbl" style="width:100%">
 	<tr>
-	<td valign="top" style="min-width:12em; text-align:right">
+	<td valign="top" style="width:12em; text-align:right">
 $if replacements:
-	<div style="border-right:1px solid #cc0; padding-right:0.5em">
-		<i>Replacements</i><br>
+	<div id="replacement" style="padding-right:0.5em; text-align:right">
+		<label for="replacement_index" id="replacement_label">Replacements:</label>
 		<select name="replacement_index" multiple="multiple" size="5">
 		$for rep in replacements:
 			<option value="$loop.index" onClick="javascript:textboxSelect(document.getElementById('text'), $(rep[1]), $(rep[2]))">$(rep[0])</option>
 		</select>
-	<p><input type="submit" name="act" value="Replace">
-	<p><input type="submit" name="act" value="Skip to next...">
+		<input type="submit" name="act" value="Replace">
+		<input type="submit" name="act" value="Skip to next...">
+		<input type="submit" name="act" value="Done">
 	</div>
 $else:
 	
-<td valign="top" style="padding-left:0.5em">
-Text<br>
-<textarea id="text" name="text" rows="10" cols="80">$text</textarea>
-<br>
-$if replacements:
-	<input type="submit" name="act" value="Done">
-$else:
+<td valign="top" style="padding-left:0.5em; padding-right:1em">
+<div style="display:block; width:100%">
+<label for="text" id="textlabel">Text:</label>
+<textarea id="text" name="text" rows="10" style="min-width:10em; width:100%">$text</textarea>
+$if not replacements:
 	<input type="submit" name="act" value="Chick Spilling">
+</div>
 </table>
 </form>
 
-<small>
+<div style="padding:1em; font-size:50%; font-family:Verdana,sans-serif">
 Elapsed: $elapsed seconds
 <hr>
 suggs: $suggestions
@@ -35,3 +35,4 @@ suggs: $suggestions
 Lines: $lines
 <hr>
 Replacements: $replacements
+
