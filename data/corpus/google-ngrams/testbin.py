@@ -48,6 +48,8 @@ Test = [
 	'if it did',
 	'and then it',
 	'the united states',
+	'cheese burger',
+	'cheeseburger',
 	'don t',
 	'don',
 	'dont',
@@ -59,5 +61,6 @@ for s in Test:
 	print((t, 'freq:', frfunc(*ids), 'ids:', ids))
 	assert all(ng.id2word(ng.word2id(w)) == w for w in t)
 
-ng.like((ng.word2id('don'),))
+for foo in ['don','dont']:
+	[(foo,ng.id2word(x), y) for x,y in ng.follows(ng.word2id(foo))[:100]]
 
