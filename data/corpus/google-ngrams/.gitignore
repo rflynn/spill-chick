@@ -5,3 +5,9 @@
 *-2008.ids.gz
 *.bin
 build/*
+*.o
+*.s
+ngram3.bin.*
+ngram3bin
+ngram3bin-compact
+cscope.out
