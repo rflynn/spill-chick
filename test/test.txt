@@ -7,11 +7,9 @@
 # corpus has a very low score for "i know you", surprised...
 #i no you : i know you
 
-# FIXME: I'm not sure but either I'm picking bad examples or something;
-# what i expect is not what the ngrams suggest. strange.
-#in the sample place : in the same place
-
 ######## PASS ############
+bridge the gap. bridge the gas. : bridge the gap. bridge the gap.
+i am hear : i am here
 nope, i was write : nope, i was right # metallic
 their it is : there it is
 you are waisting your time : you are wasting your time
@@ -34,38 +32,78 @@ dry rum : dry run
 funky farm : funny farm
 win or loose : win or lose
 Wet your appetite : Whet your appetite
+# fixed by single-token replace, but trying to fix further breaks it.
+RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
+spillchick : spellcheck # spillchick -> spellcheck -> spellchecker
+touch bass : touch base
+##--end--
 
+
+# FIXME: these take ages and always fail
+doe sit use machien learning : does it use machine learning
+dose it use machien learning : does it use machine learning
+doze it use machien learning : does it use machine learning
+##--end--
+
+
+# FIXME: I'm not sure but either I'm picking bad examples or something;
+# what i expect is not what the ngrams suggest. strange.
+#in the sample place : in the same place
+
+could care less : couldn't care less
+##--end--
+
+create a passified country : create a pacified country # urbandictionary
+someone douce me in chocolate syrup : someone douse me in chocolate syrup
+Downloading copywritten movies : Downloading copyrighted movies
+# needs to join ('cheese','burger') -> 'cheeseburger'
+I still have a double cheese burger in the refridgerator : I still have a double cheeseburger in the refrigerator
+##--end--
+
+This is all very tenative. : This is all very tentative.
+someone otther than yourself : someone other than yourself
 #--end--
+
+
+########## BOTCHED IDIOMS
+# 
+Coming down the pipe : Coming down the pike
+Through the ringer : Through the wringer
+touch basis : touch bases
+#
+#800-pond gorilla : 800-pound gorilla
+could care less : couldn't care less
+#oh de colone : eau de cologne
+#two in the hand is worth one in the bush : one in the hand is worth two in the bush
+# these two would benefit from trying edit distance 2 if we're unable to find a change the first time
+scotch free : scot-free
+never cry wool : never cry wolf
+# these are too many edits away
+# perhaps i could do it by filling in the blanks
+garden of eatin' : garden of eden
+pushing up days : pushing up daisies
+##--end--
+
+
+####### SORT OF WORKS ############
+# this would benefit if we weighted consonant changes more heavily than vowel changes
+spill chick : spell check # actually ok... ['still thick','spell check',...]
+##--end--
+
 
 # this is a tricky one. "the dog was" is immensely frequent,
 #  but "dog was dense" isn't. "fog was dense" is more frequent than "dog was dense",
 # but when the ngram frequencies are simply summed "the dog" still wins
 The dog was dense : The fog was dense
 
-#--end--
-
-# botched idioms
-Coming down the pipe : Coming down the pike
-Through the ringer : Through the wringer
-touch basis : touch bases
-800-pond gorilla : 800-pound gorilla
-could care less : couldn't care less
-never cry wool : never cry wolf
-scotch free : scot-free
-#oh de colone : eau de cologne
+# almost works, but apostrophe still
 worth it's salt : worth its salt
-garden of eatin' : garden of eden
-pushing up days : pushing up daisies
-#two in the hand is worth one in the bush : one in the hand is worth two in the bush
 
-#--end--
-
-
-#--end--
+##--end--
 
 It it did, the future would undoubtedly be changed : If it did, the future would undoubtedly be changed # Foundation, Isaac Asimov p. 33
 
-#--end--
+##--end--
 
 ####### BROKEN ##########
 overhere : overhear
@@ -76,29 +114,18 @@ Their coming too sea if its reel. : They're coming to see if it's real.
 all intensive purposes : all intents and purposes
 say "good riddens" to : say "good riddance" to # fuzzy phonic matching
 spill check : spell check
+# duplicated word 'does'
+the action does does come with : the action does come with # slashdot
 
 # this is a tricky one. "the dog was" is immensely frequent,
 #  but "dog was dense" isn't. "fog was dense" is more frequent than "dog was dense",
 # but when the ngram frequencies are simply summed "the dog" still wins
 The dog was dense : The fog was dense
 
+####### UNEXPECTED NON-FIXES ##########
+right over their : right over there # hmm "fix" is less than twice as frequent
+
 #--end--
-
-####### SORT OF WORKS ############
-# fixed by single-token replace, but trying to fix further breaks it.
-# need to know when to 
-RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
-spill chick : spell check # actually ok... ['still thick','spell check',...]
-spillchick : spellcheck # spillchick -> spellcheck -> spellchecker
-
-
-
-
-
-# FIXME: these take ages and always fail
-doe sit use machien learning : does it use machine learning
-dose it use machien learning : does it use machine learning
-doze it use machien learning : does it use machine learning
 
 #soyouneedtomakethatvariable : so you need to make that variable
 
@@ -119,13 +146,6 @@ I'm leary of it : I'm leery of it
 a pthon library : a python library
 #santimoniousness : sanctimoniousness 
 integeter division : integer division
-
-This is all very tenative. : This is all very tentative.
-someone otther than yourself : someone other than yourself
-create a passified country : create a pacified country # urbandictionary
-someone douce me in chocolate syrup : someone douse me in chocolate syrup
-Downloading copywritten movies : Downloading copyrighted movies
-I still have a double cheese burger in the refridgerator : I still have a double cheeseburger in the refrigerator
 
 # transpositions resulting in words
 The dog was dense : The fog was dense
@@ -207,3 +227,6 @@ I 8 it! : I ate it!
 # Math is not sexy. Statistics are not sext. : Math is not sexy. Statistics are not sexy.
 # best font for coding : best font for coding
 It it did, the future would undoubtedly be changed in some minor respects. : If it did, the future would undoubtedly be changed in some minor respects. # Foundation, Isaac Asimov p. 33
+not weather you win or loose it's how you ply the gale : not whether you win or lose it's how you play the game
+primitives are not implement as a direct call : primitives are not implemented as a direct call # Efficient Parallel Programming in Poly/ML and Isabelle/ML
+feel apart of something : feel a part of something
