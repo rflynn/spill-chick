@@ -3,6 +3,11 @@
 
 """
 web-based spill-chick front-end
+
+setup:
+	* ensure webserver user has
+		* read access to ngram3.bin and word.bin files
+		* write access to session/ directory
 """
 
 def abspath(localpath):
