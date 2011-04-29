@@ -11,6 +11,7 @@ $if replacements:
 		$for rep in replacements:
 			<option value="$loop.index" onClick="javascript:textboxSelect(document.getElementById('text'), $(rep[1]), $(rep[2]))">$(rep[0])</option>
 		</select>
+		<br>
 		<input type="submit" name="act" value="Replace">
 		<input type="submit" name="act" value="Skip to next...">
 		<input type="submit" name="act" value="Done">
