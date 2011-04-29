@@ -16,7 +16,6 @@ from web import form
 import logging
 
 logger = logging.getLogger('spill-chick')
-logger.setLevel(logging.CRITICAL)
 
 sys.path.append(abspath('..'))
 from chick import Chick
