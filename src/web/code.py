@@ -68,7 +68,6 @@ class check:
 		if act and act != 'Done':
 			logger.debug('suggest(lines=%s)' % (lines,))
 			suggestions = list(chick.suggest(lines, 5, session['skip']))
-			suggestions = list(dropwhile(lambda x:not x[1], suggestions))
 			if not suggestions:
 				target,suggs,sugg2 = None,[],[]
 			else:
