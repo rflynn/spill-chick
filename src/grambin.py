@@ -40,10 +40,10 @@ class GramsBin:
 		#print('like(ids)=',ids)
 		like = self.ng.like(*ids)
 		#print('like(',ng,')=',like)
-		like2 = sorted([
+		like2 = sorted(set([
 			(self.ng.id2word(t[0]),
 			 self.ng.id2word(t[1]),
 			 self.ng.id2word(t[2]), t[3])
-				for t in like], key=itemgetter(3), reverse=True)
+				for t in like]), key=itemgetter(3), reverse=True)
 		return like2
 
