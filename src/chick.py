@@ -29,6 +29,7 @@ from phon import Phon
 from gram import Grams
 from grambin import GramsBin
 from doc import Doc
+import similarity
 import algo
 
 logger.debug('sys.version=' + sys.version)
@@ -99,18 +100,12 @@ def levenshtein(a,b):
 	return current[n]
 
 # convenience functions
-def rsort(l, **kw):
-	return sorted(l, reverse=True, **kw)
-def rsort1(l):
-	return rsort(l, key=itemgetter(1))
-def rsort2(l):
-	return rsort(l, key=itemgetter(2))
-def sort1(l):
-	return sorted(l, key=itemgetter(1))
-def sort2(l):
-	return sorted(l, key=itemgetter(2))
-def flatten(ll):
-	return chain.from_iterable(ll)
+def rsort(l, **kw): return sorted(l, reverse=True, **kw)
+def rsort1(l): return rsort(l, key=itemgetter(1))
+def rsort2(l): return rsort(l, key=itemgetter(2))
+def sort1(l): return sorted(l, key=itemgetter(1))
+def sort2(l): return sorted(l, key=itemgetter(2))
+def flatten(ll): return chain.from_iterable(ll)
 def zip_longest(x, y, pad=None):
 	x, y = list(x), list(y)
 	lx, ly = len(x), len(y)
@@ -144,8 +139,11 @@ class Chick:
 		logger.debug('done.')
 		# sanity-check junk
 		# note: string/unicode fucks python2
+		logger.debug('w.correct(naieve)=%s' % self.w.correct(u'naieve'))
+		logger.debug('w.correct(refridgerator)=%s' % self.w.correct(u'refridgerator'))
+		logger.debug('g.freqs(refridgerator)=%s' % self.g.freqs(u'refridgerator'))
+		logger.debug('g.freqs(refrigerator)=%s' % self.g.freqs(u'refrigerator'))
 		"""
-	logger.debug('w.correct(naieve)=',w.correct(u'naieve'))
 	logger.debug('g.freq((didn))=',g.freq(('didn',)))
 	logger.debug('g.freq((a,mistake))=',g.freq(('a','mistake')))
 	logger.debug('g.freq((undoubtedly,be,changed))=',g.freq(('undoubtedly','be','changed')))
@@ -159,7 +157,7 @@ class Chick:
 	def alternatives(self, d, t, freq):
 		"""
 		given tok ('token', line, index) return a list of possible alternative tokens.
-		only return alternatives that within the realm of popularity of the original token.
+		only return alternatives within the realm of popularity of the original token.
 		"""
 		edit = self.w.similar(t)
 		phon = self.p.soundsLike(t, self.g)
@@ -268,68 +266,21 @@ class Chick:
 		toks = [t[0] for t in target_ngram]
 		logger.debug('toks=%s' % toks)
 
-		# find potential alternative tokens for the tokens in the unpopular ngrams
-		alt = dict([(t, self.alternatives(d,t,target_freq)) for t in toks])
-		logger.debug('alt=%s' % alt)
+		perms = list(Chick.permjoin(toks))[1:]
+		logger.debug('permjoin(%s)=%s' % (toks, perms))
+		part = [tuple(j + [self.g.freq(tuple(j))]) for j in perms]
 
 		# list all ngrams containing partial matches for our ngram
-		part = self.g.ngram_like(toks)
-		logger.debug('part=%s...' % part[:50])
+		part += self.g.ngram_like(toks)
+		logger.debug('part=%s...' % part[:10])
+		# part=[(u'bridge', u'the', u'gap', 6241L),
 
-		"""
-		part & alt
-		part is based on our corpus and alt based on token similarity.
-		an intersection between the two means we've found as good a candidate as we'll get.
-		"""
-		part_pop = Chick.intersect_alt_tok(part, alt, toks)
-		logger.debug('part_pop=%s' % part_pop)
-
-		if not any(part_pop):
-			part_pop = self.popular_alts(alt, toks)
-
-		"""
-		toks = [t[0] for t in target_ngram]
-		logger.debug('toks=',toks)
-		the code above is our best shot for repairing simple transpositions, etc.
-		however, if any of the tokens do not intersect part & alt...
-		for more mangled stuff we try a variety of techniques,
-		falling through to more desperate options should each fail
-		"""
-		if not all(part_pop) or part_pop == [[t] for t in toks]:
-			didPhon = True
-			phong = self.phonGuess(toks, target_freq)
-			logger.debug('phong=%s' % phong)
-			if phong != []:
-				part_pop = phong
-			else:
-				#intertok = inter_token(toks, w.frq, g)
-				#logger.debug('intertok=', intertok)
-				#if intertok != []:
-					#part_pop = [[x] for x in intertok[0]]
-				#else:
-				for i in range(len(part_pop)):
-					if part_pop[i] == []:
-						dec = [(t, self.g.freqs(t), levenshtein(t, toks[i]))
-							for t in alt[toks[i]] if t != toks[i]]
-						part_pop[i] = [x[0] for x in sort2(dec)][:3]
-			# add tokens back into part_pop
-			logger.debug("part_pop before...=%s" % part_pop)
-			part_pop = [p + ([] if t in p else [t])
-					for t,p in zip(toks,part_pop)]
-			logger.debug("part_pop'=%s" % part_pop)
-		else:
-			didPhon = False
-		partial = list(product(*part_pop))
-		partial += list(Chick.permjoin(toks))[1:]
-		logger.debug('partial=(len:%d)%s...' % (len(partial), partial[:50]))
-		best = partial
-		# NOTE: i really want izip_longest() but it's not available!
-		if best and len(best[0]) < len(target_ngram):
-			best[0] = tuple(list(best[0]) + [''])
-		best = [x[0] for x in rsort1([(b, self.g.freq(Chick.canon(b))) for b in best])]
-		logger.debug('%s best=%s' % (lineno(), best[:50]))
-		if len(best) > 5:
-			best = best[:5]
+		# calculate the closest, best ngram in part
+		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
+		logger.debug('sim=%s' % sim[:10])
+		best = [(tuple(alt[:-1]),scores) for alt,scores in sim
+			if scores[0] > 0][:5]
+		logger.debug('*** BEST=%s' % best)
 		return best
 
 	# currently if we're replacing a series of tokens with a shorter one we pad with an empty string
@@ -368,12 +319,37 @@ class Chick:
 
 		logger.debug('sugg=%s' % (sugg,))
 		for ng,su in sugg:
-			for s in su:
-				logger.debug('sugg %s%s %u' % (' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
+			for s,sc in su:
+				logger.debug('sugg %s%s %u' % \
+					(' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
+
+		"""
+		previously we leaned heavily on ngram frequencies and the sums of them for.
+		instead, we will focus on making the smallest changes which have the largest
+		improvements, and in trying to normalize a document, i.e. "filling in the gaps"
+		of as many 0-freq ngrams as possible.
+		"""
+
+		# FIXME: most of the stuff below this block is unnecessary and wasteful,
+		# BUT we DO want to evaluate our suggestions within the greater context which should
+		# prevent us from recommending garbage
+		"""
+		bestsuggestions = []
+		for ng,su in sugg:
+			for s in su[:max_suggest]:
+				z = list(zip_longest(target_ngram, s, ''))
+				logger.debug('z=%s' % z)
+				# isolate the changes down to the word
+				# FIXME: how to handle deleted/inserted words?
+				diff = [r for r in z if r[0][0] != r[1]]
+				bestsuggestions.append(diff)
+		return bestsuggestions
+		"""
+
 
 		def apply_suggest(ctx, ng, s):
 			# replace 'ng' slice of 'ctx' with contents of text-only ngram 's'
-			logger.debug('apply_suggest(ctx=%s ng=%s s=%s)' % (ctx, ng, s))
+			#logger.debug('apply_suggest(ctx=%s ng=%s s=%s)' % (ctx, ng, s))
 			ctx = copy.copy(ctx)
 			index = ctx.index(ng[0])
 			ctx2 = ctx[:index] + \
@@ -388,12 +364,18 @@ class Chick:
 			sugg is a list of changesets.
 			return map ctx x sugg
 			"""
-			logger.debug('realize_suggest(ctx=%s sugg=%s)' % (ctx, sugg))
-			return [[apply_suggest(ctx, ng, s) for s in su] for ng,su in sugg]
+			#logger.debug('realize_suggest(ctx=%s sugg=%s)' % (ctx, sugg))
+			return [[apply_suggest(ctx, ng, s) for s,_ in su] for ng,su in sugg]
 
 		# merge suggestions based on what they change
 		realized = realize_suggest(context, sugg)
-		logger.debug('realized=%s' % realized)
+		for real in realized:
+			for r in real:
+				rtxt = ' '.join(r[0])
+				rsc = [(x, self.g.freq(x)) for x in list2ngrams(r[0], tlen)]
+				logger.debug('real %s : %s' % (rtxt, rsc))
+
+		#########################################
 
 		realcnt = {}
 		for real in realized:
@@ -419,17 +401,6 @@ class Chick:
 				realcnt[sctx] = r
 				logger.debug('sctx=<%s> fr=%u' % (sctx, fr))
 		logger.debug('realcnt=%s' % realcnt)
-
-		######################## FIXME: we should levenshtein-score suggestions from
-		######################## alternatives(), but not from soundsLike(), since it makes
-		######################## no sense to.
-
-		######################## FIXME: also, changes from alternatives() should be scored
-		######################## phonetically; the closer to the original the better
-
-		"""
-		now incorporate sound and levenshtein distance into our final candidates
-		"""
 
 		toks = tuple(t[0] for t in context)
 		tokSound = ' '.join(self.p.phraseSound(toks))
@@ -584,6 +555,9 @@ sugg                             undoubtedly be changed 0
 				continue
 			yield (target_ngram, best)
 			logger.debug('least_common=%s...' % least_common[:20])
+			# FIXME: currently we're re-doing 99% of the same work each time
+			# instead, do more work up-front and save it!
+			break
 
 	def correct(self, txt):
 		"""
