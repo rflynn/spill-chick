@@ -1,43 +1,46 @@
 # unit tests
 
-# test: 'alternatives' and context
-# 'am found of' is a more popular ngram than 'am fond of', wtf can i do?!
-#I am found of you : I am fond of you
-
-# corpus has a very low score for "i know you", surprised...
-#i no you : i know you
-
 ######## PASS ############
+bridge the gas : bridge the gap
 bridge the gap. bridge the gas. : bridge the gap. bridge the gap.
 i am hear : i am here
+I am found of you : I am fond of you
 nope, i was write : nope, i was right # metallic
 their it is : there it is
 you are waisting your time : you are wasting your time
-bridge the gas : bridge the gap
 # test simple change, but...
 # there are several similar variants that are more popular than the correct answer
 i new that! : i knew that!
-i didn't no : i didn't know
 # test phonetic match and token removal
-a miss steak : a mistake
 peace of shit : piece of shit
-their is : there is
 their is no : there is no
-untied stats : united states
+i no you : i know you
 an IV league school : an IVY league school
-Windows PX : Windows XP
-I am very tried : I am very tired
 i now know : i now know # no-op
-dry rum : dry run
-funky farm : funny farm
 win or loose : win or lose
 Wet your appetite : Whet your appetite
-# fixed by single-token replace, but trying to fix further breaks it.
 RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
-spillchick : spellcheck # spillchick -> spellcheck -> spellchecker
-touch bass : touch base
-##--end--
+spillchick : spellcheck
+a double cheese burger in : a double cheeseburger in
+#--end--
 
+# FAIL - 
+funky farm : funny farm # wrong first token not handled
+I am very tried : I am very tired # 'i am very' has too high of a freq
+untied stats : united states # tricky -- both tokens wrong, no extra context
+# two-token not handled
+their is : there is
+Windows PX : Windows XP 
+a miss steak : a mistake
+dry rum : dry run
+#--end--
+
+# FIXME: need punctuation
+we'll touch bass : we'll touch base
+i didn't no : i didn't know
+#--end--
+
+i think think so : i think so
 
 # FIXME: these take ages and always fail
 doe sit use machien learning : does it use machine learning
@@ -230,3 +233,4 @@ It it did, the future would undoubtedly be changed in some minor respects. : If 
 not weather you win or loose it's how you ply the gale : not whether you win or lose it's how you play the game
 primitives are not implement as a direct call : primitives are not implemented as a direct call # Efficient Parallel Programming in Poly/ML and Isabelle/ML
 feel apart of something : feel a part of something
+I can't bring myself to an android phone : I can't bring myself to get an android phone # comcor

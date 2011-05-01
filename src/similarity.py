@@ -125,7 +125,7 @@ def sim_score_ngram(ng, alt, p, g):
 		#	e.g. 'win or lose' > 'win or loose'
 		# but not allow very frequent entries from overriding all similar ones
 		#	e.g. 
-		log(max(1,alt[-1])) / max(0.1,sim),
+		log(max(1,alt[-1])) / max(1,sim),
 		sim,	# how much i changed
 		alt[-1]) # frequency
 

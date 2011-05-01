@@ -324,39 +324,23 @@ class Chick:
 					(' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
 
 		"""
-		previously we leaned heavily on ngram frequencies and the sums of them for.
-		instead, we will focus on making the smallest changes which have the largest
-		improvements, and in trying to normalize a document, i.e. "filling in the gaps"
-		of as many 0-freq ngrams as possible.
+		previously we leaned heavily on ngram frequencies and the sums of them for
+		evaluating suggestios in context.
+		instead, we will focus specifically on making the smallest changes which have the
+		largest improvements, and in trying to normalize a document, i.e.
+		"filling in the gaps" of as many 0-freq ngrams as possible.
 		"""
-
-		# FIXME: most of the stuff below this block is unnecessary and wasteful,
-		# BUT we DO want to evaluate our suggestions within the greater context which should
-		# prevent us from recommending garbage
-		"""
-		bestsuggestions = []
-		for ng,su in sugg:
-			for s in su[:max_suggest]:
-				z = list(zip_longest(target_ngram, s, ''))
-				logger.debug('z=%s' % z)
-				# isolate the changes down to the word
-				# FIXME: how to handle deleted/inserted words?
-				diff = [r for r in z if r[0][0] != r[1]]
-				bestsuggestions.append(diff)
-		return bestsuggestions
-		"""
-
 
 		def apply_suggest(ctx, ng, s):
 			# replace 'ng' slice of 'ctx' with contents of text-only ngram 's'
 			#logger.debug('apply_suggest(ctx=%s ng=%s s=%s)' % (ctx, ng, s))
 			ctx = copy.copy(ctx)
 			index = ctx.index(ng[0])
-			ctx2 = ctx[:index] + \
-				[(t, c[1], c[2], c[3]) for c,t in zip(ctx[index:], s)] + \
-				ctx[index+len(ng):]
+			diff = list(zip_longest(ng, s, ''))
+			repl = [(t, c[1], c[2], c[3]) for c,t in zip(ctx[index:], s)]
+			ctx2 = ctx[:index] + repl + ctx[index+len(ng):]
 			#return (' '.join([c[0] for c in ctx2 if c[0]]), ng, s)
-			return (tuple(c[0] for c in ctx2 if c[0]), ng, s)
+			return (tuple(c[0] for c in ctx2 if c[0]), ng, s, diff)
 
 		def realize_suggest(ctx, sugg):
 			"""
@@ -365,137 +349,32 @@ class Chick:
 			return map ctx x sugg
 			"""
 			#logger.debug('realize_suggest(ctx=%s sugg=%s)' % (ctx, sugg))
-			return [[apply_suggest(ctx, ng, s) for s,_ in su] for ng,su in sugg]
+			return [[(apply_suggest(ctx, ng, s), diff)
+				for s,diff in su]
+					for ng,su in sugg]
 
 		# merge suggestions based on what they change
 		realized = realize_suggest(context, sugg)
+		logger.debug('realized=%s' % (realized,))
+		realdiff = {}
 		for real in realized:
-			for r in real:
-				rtxt = ' '.join(r[0])
-				rsc = [(x, self.g.freq(x)) for x in list2ngrams(r[0], tlen)]
-				logger.debug('real %s : %s' % (rtxt, rsc))
+			for (rngtxt,rngpos,rsugg,rdiff),diff in real:
+				rstr = ' '.join(rngtxt)
+				#rsc = [(x, self.g.freq(x)) for x in list2ngrams(rngtxt, tlen)]
+				logger.debug('real %s diff=%s' % (rstr, diff))
+				# merge suggestions by their effects
+				rddiff, rdngpos = realdiff.get(rstr, ((0,0,0),[]))
+				rddiff = tuple(map(sum, zip(rddiff, diff)))
+				rdngpos.append(rdiff)
+				realdiff[rstr] = (rddiff, rdngpos)
 
-		#########################################
-
-		realcnt = {}
-		for real in realized:
-			logger.debug('real=%s' % real)
-			for sctx,ng,s in real:
-				"""
-				sum up the frequency of all ngrams in the realized result
-				note: this is inefficient and should be above and intelligently merged
-				"""
-				fr = round(sum(map(self.g.freq, list2ngrams(sctx, tlen))) / len(sctx))
-				# TODO: should we adjust 'fr' based on the minimum ngram frequency
-				# or not?
-				"""
-				sctx is the realized string that this recommends
-				keep track of the total frequency and also the number of suggestions
-				number of suggestions is more important!
-				"""
-				try:
-					r = realcnt[sctx]
-					r = (r[0] + fr, r[1] + 1)
-				except KeyError:
-					r = (fr, 1)
-				realcnt[sctx] = r
-				logger.debug('sctx=<%s> fr=%u' % (sctx, fr))
-		logger.debug('realcnt=%s' % realcnt)
-
-		toks = tuple(t[0] for t in context)
-		tokSound = ' '.join(self.p.phraseSound(toks))
-
-		realcnt2 = {}
-		for k,(kFreq,kCnt) in realcnt.items():
-			if kFreq >= target_freq:
-				# FIXME: too fragile. we want to be able to correct phonic mis-spellings
-				# and for short phrases phonics is more important than score
-				# but for longer things valuing sound-a-likes means we recommend
-				# "wood" for "would" in rediculous situations
-				kSound = ' '.join(self.p.phraseSound(k)) if len(k) < 4 else ''
-				kLev = sum(levenshtein(t,k) for t,k in zip(toks,k))
-				# TODO: can't decide whether kCnt or kFreq should be first;
-				# kCnt 21/32
-				# kFreq 20/32
-				# kFreq / kCnt 20/32
-				realcnt2[k] = (int(kSound == tokSound and k != toks and kFreq > target_freq), kFreq/kCnt, kCnt, kFreq, kLev)
-
-		logger.debug("target_freq=%s realcnt2'=%s" % (target_freq, realcnt2,))
-
-		"""
-		remove any suggestions that do not have suggestions for each ngram
-		that is, for suggestions ngram length 3, proposed solution a b c d e
-		must contain suggestions supporting (a,b,c),(b,c,d),(c,d,e)
-		a missing link means the suggestion is not a good one
-		this prevents popular single words from overpowering less-common ones
-		where they do not actually occur.
-		this is the real power of ngram context
-
-		FIXME: hmmm not so sure actually. given "the dog was dense", expecting "the fog was dense"
-		we get a much higher score for "the dog was", even though "fog was dense" outscores "dog was dense".
-		the fact that people talk about their dogs more than fog kills us here.
-		"""
-		reallink = rsort1(realcnt2.items())
-		logger.debug('reallink=%s' % reallink)
-		reallink2 = list(takewhile(lambda x:x[1] > 0, reallink))
-		logger.debug('reallink2=%s' % reallink2)
-
-		if not reallink2:
-			return [] # got nothin'
-
-		bestsuggestions = []
-
-		logger.debug('max_suggest=%s' % max_suggest)
-
-		# suggestions must be this much better than the original to be considered
-		target_freq_improve_threshold = log(max(1,target_freq)) + 1.5
-
-		# calculate the most-recommended change
-		for realbest in reallink2[:max_suggest]:
-			logger.debug('realbest=' + str(realbest))
-
-			"""
-			if we didn't substantially improve the freq then don't recommend it.
-			prevent popular phrases from overriding similar but less frequent ones
-			"""
-			# TODO: for interactive spell-checking we don't want to have hard, arbitrary limits;
-			# instead we want to calculate all potential "improvements" and present them to the
-			# user in descending order of magnitude.
-			# we can't do this currently because we're just too slow.
-			realbest_score = log(max(1,realbest[1][1]))
-			if realbest_score < target_freq_improve_threshold:
-				logger.debug('realbest=%s (%s) not popular enough vs target_freq=%s(%s)' % \
-					(realbest, realbest_score, target_freq, target_freq_improve_threshold))
-				continue
-
-			"""
-			now that we've realized our suggestions and chosen a solution to recommend,
-			we need to work backwards to figure out which part of 'sugg' produces this
-			answer and return it
-			"""
-			# list of lists of suggestions that produce realbest
-			bestsugg = [[r[2] for r in real if r[0] == realbest[0]] for real in realized]
-			# choose the first non-empty list
-			bestsugg2 = list(filter(None, bestsugg))[0][0]
-			logger.debug('bestsugg2=' + str(bestsugg2))
-			# now we know which ngram the change belongs to, figure out which it applies to
-			bestorig = [s[0] for s in sugg if bestsugg2 in s[1]][0]
-			logger.debug('bestorig=' + str(bestorig))
-
-			"""
-			return the suggestion that realizes the best change,
-			and the ngrampos it originates from
-			"""
-			ret = list(zip_longest(bestorig, bestsugg2, ''))
-			logger.debug('ret=%s' % ret)
-			# isolate the changes down to the word
-			# FIXME: how to handle deleted/inserted words?
-			ret2 = [r for r in ret if r[0][0] != r[1]]
-			logger.debug('ret2=%s' % ret2)
-			bestsuggestions.append(ret2)
-
-		logger.debug('bestsuggestions=%s' % (bestsuggestions,))
-		return bestsuggestions
+		# sort the merged suggestions based on their combined score
+		rdbest = sorted(realdiff.items(), key=lambda x:x[1][0], reverse=True)
+		logger.debug('realdiff=%s' % (rdbest,))
+		# extract the suggested changes and return them
+		bestsuggs = [rd[1][1][0] for rd in rdbest[:max_suggest]]
+		logger.debug('bestsuggs=%s' % (bestsuggs,))
+		return bestsuggs
 
 	def suggest(self, txt, max_suggest=1, skip=[]):
 		"""
