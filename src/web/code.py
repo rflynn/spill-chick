@@ -78,13 +78,13 @@ class check:
 			else:
 				off = [len(l)+1 for l in lines]
 				lineoff = [0]+[sum(off[:i]) for i in range(1,len(off)+1)]
-				target,suggs = suggestions[0]
-				sugg2 = [
-					(#' '.join(x[0][0] for x in s), # string being replaced
-					 ' '.join(x[1] for x in s), # replacement
-					 s[0][0][3], # beginning index
-					 s[-1][0][3] + len(s[-1][0][0])) # length of replacement
-						for s in suggs if s]
+				for target,suggs in suggestions:
+					sugg2 += [
+						(#' '.join(x[0][0] for x in s), # string being replaced
+						' '.join(x[1] for x in s), # replacement
+						s[0][0][3], # beginning index
+						s[-1][0][3] + len(s[-1][0][0])) # length of replacement
+							for s in suggs if s]
 
 			session['target'] = target
 			session['replacements'] = suggs
