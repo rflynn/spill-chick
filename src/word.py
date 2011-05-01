@@ -67,7 +67,7 @@ class Words:
 	# FIXME: douce -> douse
 	# FIXME: iv -> ivy
 	def correct(self, word):
-		candidates = self.known([word]) or self.known(edits1(word)) or self.known_edits2(word) or [word]
+		candidates = self.known([word]) | self.known(edits1(word)) or self.known_edits2(word) or [word]
 		return max(candidates, key=self.frq.get)
 
 	# FIXME: bid -> big
