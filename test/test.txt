@@ -2,10 +2,11 @@
 
 ######## PASS ############
 bridge the gas : bridge the gap
-bridge the gap. bridge the gas. : bridge the gap. bridge the gap.
+eye halve a spelling checker : i have a spelling checker
+i have a spelling chequer : i have a spelling checker
 i am hear : i am here
 I am found of you : I am fond of you
-nope, i was write : nope, i was right # metallic
+no, i was write : no, i was right # metallic
 their it is : there it is
 you are waisting your time : you are wasting your time
 # test simple change, but...
@@ -22,25 +23,36 @@ Wet your appetite : Whet your appetite
 RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
 spillchick : spellcheck
 a double cheese burger in : a double cheeseburger in
+Try and fry again : Try and try again
+we have a bid backyard : we have a big backyard
+Summer is almost hear. : Summer is almost here.
+That is pretty much what I was eluding : That is pretty much what I was alluding
+I am very tried : I am very tired
+garden of eating : garden of eden
+garden of eatin' : garden of eden
+# no-ops
+i think so : i think so
 #--end--
 
 # FAIL - 
 funky farm : funny farm # wrong first token not handled
-I am very tried : I am very tired # 'i am very' has too high of a freq
 untied stats : united states # tricky -- both tokens wrong, no extra context
-# two-token not handled
+# issue: two-token not handled
 their is : there is
 Windows PX : Windows XP 
 a miss steak : a mistake
 dry rum : dry run
-#--end--
-
-# FIXME: need punctuation
+# issue: punctuation
+hell there. how are you? : hello there. how are you? # needs punctuation
 we'll touch bass : we'll touch base
 i didn't no : i didn't know
+# issue: slang
+nope, i was write : nope, i was right # metallic # slang, doesn't know 'nope'
+bridge the gap. bridge the gas. : bridge the gap. bridge the gap. # multi-sentence problem; ignores "gas."
+# issue: unknown
+get what you payed for : get what you paid for
 #--end--
 
-i think think so : i think so
 
 # FIXME: these take ages and always fail
 doe sit use machien learning : does it use machine learning
@@ -83,7 +95,6 @@ scotch free : scot-free
 never cry wool : never cry wolf
 # these are too many edits away
 # perhaps i could do it by filling in the blanks
-garden of eatin' : garden of eden
 pushing up days : pushing up daisies
 ##--end--
 
@@ -171,9 +182,6 @@ Gergory : Gregory
 Johsua : Joshua
 
 # misspellings resulting in words
-Try and fry again : Try and try again
-we have a bid backyard : we have a big backyard
-Summer is almost hear. : Summer is almost here.
 a shallow accent angle. : a shallow ascent angle.
 someone otter than yourself : someone other than yourself
 now it makes perfect sensor : now it makes perfect sense
@@ -213,7 +221,9 @@ That it. : That's it.
 #production on hold across the country to allow to watch the match. : put production on hold across the country to allow employees to watch the match.
 #Microsoft is obsessed Websockets : Microsoft is obsessed with Websockets
 
+### OTHERS
 # splits
+# we *can* tease this out, but the cost of doing so is just too high right now. in the future perhps we can fall back to more expensive methods when appropriate
 ifit'snotpurethecompilercan'toptimizeitlikeyouwant : if it's not pure the compiler can't optimize it like you want
 
 # phonetic numbers
@@ -226,7 +236,7 @@ I 8 it! : I ate it!
 
 # unclassified real-world
 #A group of 21 volunteers from Tokyo and Saitama brought Sunday 2,000 meals for about over 500 evacuees at the shelter.
-#Use Reddit to decide what to tool use. : Use Reddit to decide what tool to use.
+#Use Reddit to decide what to tool use. : Use Reddit to decide what tool to use. # token swap x,y -> y,x
 # Math is not sexy. Statistics are not sext. : Math is not sexy. Statistics are not sexy.
 # best font for coding : best font for coding
 It it did, the future would undoubtedly be changed in some minor respects. : If it did, the future would undoubtedly be changed in some minor respects. # Foundation, Isaac Asimov p. 33
@@ -234,3 +244,8 @@ not weather you win or loose it's how you ply the gale : not whether you win or 
 primitives are not implement as a direct call : primitives are not implemented as a direct call # Efficient Parallel Programming in Poly/ML and Isabelle/ML
 feel apart of something : feel a part of something
 I can't bring myself to an android phone : I can't bring myself to get an android phone # comcor
+
+nyc sing company : nyc sign company
+# this is a real-world example of an uncommon n-gram transposition.
+# the only way we can detect these sorts of errors is to adapt our corpus
+# to handle context in a personalized way, by building a corpus out of local documents.
