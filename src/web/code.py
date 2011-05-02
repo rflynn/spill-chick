@@ -69,6 +69,7 @@ class check:
 		sugg2 = []
 		suggs = []
 		suggestions = []
+		replacements = []
 
 		if act and act != 'Done':
 			logger.debug('suggest(lines=%s)' % (lines,))
@@ -79,6 +80,7 @@ class check:
 				off = [len(l)+1 for l in lines]
 				lineoff = [0]+[sum(off[:i]) for i in range(1,len(off)+1)]
 				for target,suggs in suggestions:
+					replacements += suggs
 					sugg2 += [
 						(#' '.join(x[0][0] for x in s), # string being replaced
 						' '.join(x[1] for x in s), # replacement
@@ -87,7 +89,7 @@ class check:
 							for s in suggs if s]
 
 			session['target'] = target
-			session['replacements'] = suggs
+			session['replacements'] = replacements
 
 		elapsed = round(time() - start_time, 2)
 		return render.check(text, sugg2, lines, elapsed, suggestions)
