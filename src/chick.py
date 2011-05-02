@@ -170,19 +170,8 @@ class Chick:
 		alt2 = [x[0] for x in alt]
 		return set(alt2)
 
-	# FIXME: this is much too slow and yields little benefit
-	# figure out a much cheaper way of doing a subset of this
-	def inter_token(self, toks, freq):
-		"""
-		given a list of tokens, disregard token borders and attempt to find alternate valid
-		token lists
-		"""
-		if sum(map(len, toks)) > 12:
-			logger.debug('too long for exhaustive')
-			return []
-		s = list(algo.splits(toks, freq, self.g))
-		return s
-
+	# FIXME: 'marques' -> marks!
+	# FIXME: revue -> review?!
 	def phonGuess(self, toks, minfreq):
 		"""
 		given a list of tokens search for a list of words with similar pronunciation having g.freq(x) > minfreq
@@ -214,34 +203,6 @@ class Chick:
 			return []
 		best = phonpop[0][0]
 		return [[x] for x in best]
-
-	@staticmethod
-	def intersect_alt_tok(part, alt, toks):
-		"""
-		part are partial matches, i.e. for (x,y,z) they're (x,y,_)
-		alt[tok] is a set of close words to tok
-		for each token in toks we find intersections between alt[tok] and part[n]
-		"""
-		part_pop = [set() for _ in toks]
-		for pa in part:
-			for t,(i,p) in zip(toks, enumerate(pa[:-1])):
-				if p in alt[t]:
-					part_pop[i].add(p)
-				#elif levenshtein(p, t) < min(3, len(t)/2):
-				#	part_pop[i].add(p)
-		return [list(s) for s in part_pop]
-
-	def popular_alts(self, alt, toks):
-		"""
-		produce ngrams consisting of token alternatives meeting a certain frequency
-		sometimes someone really botches the spelling and comes up with a garbage term
-		"""
-		freqlog = lambda fr: round(log(fr+1))
-		freq = [(t, freqlog(self.g.freqs(t)), alt[t]) for t in toks]
-		freq2 = [[a for a in al if freqlog(self.g.freqs(a))+1 >= fr]
-			for k,fr,al in freq]
-		logger.debug('popular_alts=%s' % freq2)
-		return freq2
 
 	@staticmethod
 	def permjoin(l):
@@ -353,10 +314,6 @@ class Chick:
 			return [[(apply_suggest(ctx, ng, s), diff)
 				for s,diff in su]
 					for ng,su in sugg]
-
-		# FIXME: currently our scoring is unfair; we do not apply a shared
-		# prefix's score to all candidates. each realized needs to be evaluated
-		# on what it changes only
 
 		# merge suggestions based on what they change
 		realized = realize_suggest(context, sugg)
