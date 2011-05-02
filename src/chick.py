@@ -43,7 +43,6 @@ from gram import Grams
 from grambin import GramsBin
 from doc import Doc
 import similarity
-import algo
 
 logger.debug('sys.version=' + sys.version)
 
