@@ -80,7 +80,7 @@ def similarity(x, y, p):
 	if x == y:
 		return 0
 	sx,sy = p.phraseSound([x]),p.phraseSound([y])
-	if sx == sy:
+	if sx == sy and sx:
 		# sound the same, e.g. there/their. consider these equal.
 		return 0
 	# otherwise, calculate phonic/edit difference
@@ -158,7 +158,8 @@ if __name__ == '__main__':
 	# test single tokens
 	for tok,alts in [	
 		('bomb', ['bob','comb','tom','tomb','womb','ohm','boo','bbbb','unrelated','i']),
-		('apart', ['part','par','party','partly','aaaaa','unrelated','i']), ]:
+		('apart', ['part','par','party','partly','aaaaa','unrelated','i']),
+		('eatin', ['eden','gethsemane']), ]:
 		# for some reason max(len(s),...) blows up when s is str but not unicode, wtf
 		tok,alts = unicode(tok),map(unicode,alts)
 		sim = sim_order(tok, alts, p, g)
