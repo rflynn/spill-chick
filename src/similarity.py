@@ -152,7 +152,7 @@ if __name__ == '__main__':
 		'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/word.bin',
 		'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/ngram3.bin')
 	w = Words(NGram3BinWordCounter(g.ng))
-	p = Phon(w)
+	p = Phon(w,g)
 	logging.debug('loaded.')
 
 	# test single tokens
