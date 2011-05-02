@@ -4,7 +4,20 @@
 # Copyright 2011 Ryan Flynn <parseerror+spill-chick@gmail.com>
 
 """
-Test our word/grammar algorithm
+word/grammar checking algorithm
+
+Facts
+	* the corpus is not perfect. it contains errors.
+	* not every valid ngram will exist in the corpus.
+	* infrequent but valid ngrams are sometimes very similar to very frequent ones
+
+Mutations
+	* insertion : additional item
+		* duplication : correct item incorrectly number of times
+	* deletion : item missing
+	* transposition : correct items, incorrect order
+
+
 """
 
 import logging
