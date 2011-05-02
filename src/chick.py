@@ -4,7 +4,9 @@
 # Copyright 2011 Ryan Flynn <parseerror+spill-chick@gmail.com>
 
 """
-word/grammar checking algorithm
+Word/grammar checking algorithm
+
+Phon ✕ Word ✕ NGram ✕ Doc ✕ similarity
 
 Facts
 	* the corpus is not perfect. it contains errors.
