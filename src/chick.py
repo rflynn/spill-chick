@@ -227,14 +227,23 @@ class Chick:
 		toks = [t[0] for t in target_ngram]
 		logger.debug('toks=%s' % (toks,))
 
-		perms = list(Chick.permjoin(toks))[1:]
+		perms = []
+
+		# permutations by phonic similarity
+		phon = self.phonGuess(toks, target_freq)
+		logger.debug('phonGuess(%s)=%s' % (toks, phon))
+		if phon:
+			perms += [[p[0] for p in phon]]
+
+		# permutations via token joining
+		perms += list(Chick.permjoin(toks))[1:]
 		logger.debug('permjoin(%s)=%s' % (toks, perms))
+
 		part = [tuple(j + [self.g.freq(tuple(j))]) for j in perms]
 
-		# list all ngrams containing partial matches for our ngram
+		# permutations via ngram3 partial matches
 		part += self.g.ngram_like(toks)
 		logger.debug('part=%s...' % part[:10])
-		# part=[(u'bridge', u'the', u'gap', 6241L),
 
 		# calculate the closest, best ngram in part
 		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
