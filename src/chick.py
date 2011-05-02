@@ -138,21 +138,18 @@ class Chick:
 		self.p = Phon(self.w)
 		logger.debug('done.')
 		# sanity-check junk
-		# note: string/unicode fucks python2
 		logger.debug('w.correct(naieve)=%s' % self.w.correct(u'naieve'))
 		logger.debug('w.correct(refridgerator)=%s' % self.w.correct(u'refridgerator'))
 		logger.debug('g.freqs(refridgerator)=%s' % self.g.freqs(u'refridgerator'))
 		logger.debug('g.freqs(refrigerator)=%s' % self.g.freqs(u'refrigerator'))
-		"""
-	logger.debug('g.freq((didn))=',g.freq(('didn',)))
-	logger.debug('g.freq((a,mistake))=',g.freq(('a','mistake')))
-	logger.debug('g.freq((undoubtedly,be,changed))=',g.freq(('undoubtedly','be','changed')))
-	logger.debug('g.freq((undoubtedly,be))=',g.freq(('undoubtedly','be')))
-	logger.debug('g.freq((be,changed))=',g.freq(('be','changed')))
-	logger.debug('g.freq((it,it,did))=',g.freq(('it','it','did')))
-	logger.debug('g.freq((it,it))=',g.freq(('it','it')))
-	logger.debug('g.freq((it,did))=',g.freq(('it','did')))
-		"""
+		logger.debug('g.freq((didn))=%s' % self.g.freq((u'didn',)))
+		logger.debug('g.freq((a,mistake))=%s' % self.g.freq((u'a',u'mistake')))
+		logger.debug('g.freq((undoubtedly,be,changed))=%s' % self.g.freq((u'undoubtedly',u'be',u'changed')))
+		logger.debug('g.freq((undoubtedly,be))=%s' % self.g.freq((u'undoubtedly',u'be')))
+		logger.debug('g.freq((be,changed))=%s' % self.g.freq((u'be',u'changed')))
+		logger.debug('g.freq((it,it,did))=%s' % self.g.freq((u'it',u'it',u'did')))
+		logger.debug('g.freq((it,it))=%s' % self.g.freq((u'it',u'it')))
+		logger.debug('g.freq((it,did))=%s' % self.g.freq((u'it',u'did')))
 
 	def alternatives(self, d, t, freq):
 		"""
