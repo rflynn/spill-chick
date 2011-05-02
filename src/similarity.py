@@ -130,7 +130,7 @@ def sim_score_ngram(ng, alt, p, g):
 		alt[-1]) # frequency
 
 def sim_order_ngrampop(ng, alts, p, g):
-	#print 'ng=',ng,'alts=',alts
+	#print 'ng=',ng,'alts=',alts[:10],'...'
 	sim1 = [(alt, sim_score_ngram(ng, alt, p, g)) for alt in alts]
 	sim2 = sorted(sim1, key=lambda x:x[1][2], reverse=True)
 	sim3 = sorted(sim2, key=lambda x:x[1][1], reverse=True)

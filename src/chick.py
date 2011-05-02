@@ -257,14 +257,14 @@ class Chick:
 			for suf in Chick.permjoin(l[2:]):
 				yield [l[0]+l[1]] + suf
 
-	def do_suggest(self, target_ngram, target_freq, ctx, d):
+	def do_suggest(self, target_ngram, target_freq, ctx, d, max_suggest=5):
 		"""
 		given an infrequent ngram from a document, attempt to calculate a more frequent one
 		that is similar textually and/or phonetically but is more frequent
 		"""
 
 		toks = [t[0] for t in target_ngram]
-		logger.debug('toks=%s' % toks)
+		logger.debug('toks=%s' % (toks,))
 
 		perms = list(Chick.permjoin(toks))[1:]
 		logger.debug('permjoin(%s)=%s' % (toks, perms))
@@ -279,7 +279,7 @@ class Chick:
 		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
 		logger.debug('sim=%s' % sim[:10])
 		best = [(tuple(alt[:-1]),scores) for alt,scores in sim
-			if scores[0] > 0][:5]
+			if scores[0] > 0][:max_suggest]
 		logger.debug('*** BEST=%s' % best)
 		return best
 
@@ -307,6 +307,7 @@ class Chick:
 
 		context = list(d.ngram_context(target_ngram, tlen))
 		logger.debug('context=%s' % (context,))
+		ctoks = [c[0] for c in context]
 		clen = len(context)
 
 		logger.debug('tlen=%d clen=%d' % (tlen, clen))
@@ -315,7 +316,7 @@ class Chick:
 
 		# gather suggestions for each ngram overlapping target_ngram
 		sugg = [(ng, self.do_suggest(ng, self.g.freq([x[0] for x in ng]), context_ngrams, d))
-			for ng in context_ngrams]
+			for ng in [target_ngram]] #context_ngrams]
 
 		logger.debug('sugg=%s' % (sugg,))
 		for ng,su in sugg:
@@ -336,10 +337,10 @@ class Chick:
 			#logger.debug('apply_suggest(ctx=%s ng=%s s=%s)' % (ctx, ng, s))
 			ctx = copy.copy(ctx)
 			index = ctx.index(ng[0])
-			diff = list(zip_longest(ng, s, ''))
 			repl = [(t, c[1], c[2], c[3]) for c,t in zip(ctx[index:], s)]
 			ctx2 = ctx[:index] + repl + ctx[index+len(ng):]
-			#return (' '.join([c[0] for c in ctx2 if c[0]]), ng, s)
+			# store the side-by-side token difference for later
+			diff = list(zip_longest(ng, s, ''))
 			return (tuple(c[0] for c in ctx2 if c[0]), ng, s, diff)
 
 		def realize_suggest(ctx, sugg):
@@ -353,6 +354,10 @@ class Chick:
 				for s,diff in su]
 					for ng,su in sugg]
 
+		# FIXME: currently our scoring is unfair; we do not apply a shared
+		# prefix's score to all candidates. each realized needs to be evaluated
+		# on what it changes only
+
 		# merge suggestions based on what they change
 		realized = realize_suggest(context, sugg)
 		logger.debug('realized=%s' % (realized,))
@@ -360,8 +365,20 @@ class Chick:
 		for real in realized:
 			for (rngtxt,rngpos,rsugg,rdiff),diff in real:
 				rstr = ' '.join(rngtxt)
-				#rsc = [(x, self.g.freq(x)) for x in list2ngrams(rngtxt, tlen)]
-				logger.debug('real %s diff=%s' % (rstr, diff))
+				# FIXME: trying to evaluate the change in its surrounding context;
+				# there must be a better way to do it than this
+				# FIXME: also, i need a way to handle token merges/deletes/insertions
+				# that allows meaningful comparison of ngrams from before and after
+				rsc = [similarity.sim_order_ngrampop(x, [tuple(list(y)+[self.g.freq(y)])], self.p, self.g)
+					for x,y in zip(list2ngrams(ctoks, tlen),
+						       list2ngrams(rngtxt, tlen))]
+
+
+				# FIXME: overwriting diff
+				diff = tuple(reduce(lambda x,y:map(sum,zip(x,y)),
+					[r[0][1] for r in rsc]))
+				
+				logger.debug('real %s diff=%s rsc=%s' % (rstr, diff, rsc))
 				# merge suggestions by their effects
 				rddiff, rdngpos = realdiff.get(rstr, ((0,0,0),[]))
 				rddiff = tuple(map(sum, zip(rddiff, diff)))
@@ -371,6 +388,8 @@ class Chick:
 		# sort the merged suggestions based on their combined score
 		rdbest = sorted(realdiff.items(), key=lambda x:x[1][0], reverse=True)
 		logger.debug('realdiff=%s' % (rdbest,))
+		for rstr,(score,_) in rdbest:
+			logger.debug('best %s %s' % (rstr, score))
 		# extract the suggested changes and return them
 		bestsuggs = [rd[1][1][0] for rd in rdbest[:max_suggest]]
 		logger.debug('bestsuggs=%s' % (bestsuggs,))
@@ -430,7 +449,7 @@ sugg                             undoubtedly be changed 0
 			target_ngram,target_freq = least_common.pop(0)
 			best = self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
 			logger.debug('ngram_suggest=%s' % best)
-			if not best:
+			if not best or all(b[0][0] == b[1] for b in best[0]):
 				continue
 			yield (target_ngram, best)
 			logger.debug('least_common=%s...' % least_common[:20])
