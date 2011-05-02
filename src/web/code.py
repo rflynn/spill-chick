@@ -84,8 +84,8 @@ class check:
 					sugg2 += [
 						(#' '.join(x[0][0] for x in s), # string being replaced
 						' '.join(x[1] for x in s), # replacement
-						s[0][0][3], # beginning index
-						s[-1][0][3] + len(s[-1][0][0])) # length of replacement
+						lineoff[s[0][0][1]] + s[0][0][3], # beginning index
+						lineoff[s[-1][0][1]] + s[-1][0][3] + len(s[-1][0][0])) # length of replacement
 							for s in suggs if s]
 
 			session['target'] = target
