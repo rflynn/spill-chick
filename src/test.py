@@ -4,7 +4,7 @@
 # Copyright 2011 Ryan Flynn <parseerror+spill-chick@gmail.com>
 
 """
-Test our word/grammar algorithm
+chick.py ✕ test.txt
 """
 
 import sys, re, logging
