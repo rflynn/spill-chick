@@ -190,26 +190,33 @@ class Chick:
 		# create a phentic signature of the ngram
 		phonsig = self.p.phraseSound(toks)
 		logger.debug('phonsig=%s' % phonsig)
-		#logger.debug('phonsig=',p.phraseSound(['all','intents','and','purposes']))
-
+		# FIXME: this is useful but potentially results in a lot of work for some phrases.
 		phonwords = list(self.p.soundsToWords(phonsig))
-		logger.debug('phonwords=%s' % phonwords)
+		logger.debug('phonwords=%s' % (phonwords,))
 		if phonwords == [[]]:
 			phonpop = []
 		else:
-			# remove any words we've never seen
+			# remove any words that do not meet the minimum frequency; they cannot possibly be part of the answer
 			phonwords2 = [[[w for w in p if self.g.freqs(w) > minfreq] for p in pw] for pw in phonwords]
-			logger.debug('phonwords2=%s' % (phonwords2,))
+			logger.debug('phonwords2 lengths=%s product=%u' % \
+				(' '.join([str(len(p)) for p in phonwords2[0]]),
+				 reduce(lambda x,y:x*y, [len(p) for p in phonwords2[0]])))
+			if not all(phonwords2):
+				return []
+			#logger.debug('phonwords2=(%u)%s...' % (len(phonwords2), phonwords2[:10],))
 			# remove any signatures that contain completely empty items after previous
-			phonwords3 = [pw for pw in phonwords2 if all(pw)]
-			logger.debug('phonwords3=%s' % phonwords3)
+			phonwords3 = phonwords2
+			#logger.debug('phonwords3=(%u)%s...' % (len(phonwords3), phonwords3))
+			# FIXME: product() function is handy in this case but is potentially hazardous.
+			# we should force a limit to the length of any list passed to it to ensure
+			# the avoidance of any pathological behavior
 			phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
-			logger.debug('phonwords4=%s' % phonwords4)
+			#logger.debug('phonwords4=(%u)%s...' % (len(phonwords4), phonwords4[:10]))
 			# look up ngram popularity, toss anything not more popular than original and sort
 			phonpop = rsort1([(pw, self.g.freq(pw)) for pw in phonwords4])
-			logger.debug('phonpop=%s' % phonpop)
+			#logger.debug('phonpop=(%u)%s...' % (len(phonpop), phonpop[:10]))
 			phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
-			logger.debug('phonpop=%s' % phonpop)
+			#logger.debug('phonpop=%s...' % (phonpop[:10],))
 		if phonpop == []:
 			return []
 		best = phonpop[0][0]
