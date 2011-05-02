@@ -183,8 +183,6 @@ class Chick:
 		alt2 = [x[0] for x in alt]
 		return set(alt2)
 
-	# FIXME: 'marques' -> marks!
-	# FIXME: revue -> review?!
 	def phonGuess(self, toks, minfreq):
 		"""
 		given a list of tokens search for a list of words with similar pronunciation having g.freq(x) > minfreq
