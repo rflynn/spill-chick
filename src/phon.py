@@ -9,12 +9,12 @@ import collections, re, sys, gzip, pickle, os, mmap
 from word import Words
 
 class Phon:
-	def __init__(self, w):
+	def __init__(self, w, g):
 		self.words = w
 		self.word = collections.defaultdict(list)
 		self.phon = collections.defaultdict(list)
-		self.load()
-	def load(self):
+		self.load(g)
+	def load(self, g):
 		path ='/home/pizza/proj/spill-chick/data/cmudict/cmudict.0.7a'
 		# extract file if necessary
 		if not os.path.exists(path):
@@ -22,6 +22,9 @@ class Phon:
 				with gzip.open(path+'.gz', 'rb') as src:
 					dst.write(src.read())
 		redigits = re.compile('\d+')
+		multichar = re.compile('(\S)(\S+)')
+		# TODO: loading this ~130,000 line dictionary in python represents the majority
+		# of the program's initialization time. move it over to C.
 		with open(path, 'r') as f:
 			for line in f:
 				if line.startswith(';;;'):
@@ -29,7 +32,39 @@ class Phon:
 				line = line.decode('utf8')
 				line = line.strip().lower()
 				word, phon = line.split('  ')
-				phon = re.sub(redigits, '', phon)
+				"""
+				skip any words that do not appear in our ngrams.
+				this makes a significant difference when trying to reconstruct phrases
+				phonetically; small decreases in terms have large decreases in products.
+				note: you may think that every word in a dictionary would appear
+				at least once in a large corpus, but we truncate corpus n-grams at a
+				certain minimum frequency which may exclude very obscure words from ultimately
+				appearing at all.
+				"""
+				# TODO: what i really should do is eliminate all words that appear less
+				# than some statistically significant time; the vast majority of the
+				# phonetic phrases I currently try are filled with short obscure words
+				# and are a complete waste
+				if g.freqs(word) == 0:
+					continue
+				"""
+				implement a very rough phonic fuzzy-matching
+				phonic codes consist of a list of sounds such as:
+					REVIEW  R IY2 V Y UW1
+				we simplify this to
+					REVIEW  R I V Y U
+				this allows words with close but imperfectly sounding matches to
+				be identified. for example:
+					REVUE   R IH0 V Y UW1
+					REVIEW  R IY2 V Y UW1
+				is close but not a perfect match. after regex:
+					REVUE  R I V Y U
+					REVIEW R I V Y U
+				"""
+				phon = re.sub(multichar, '\\1', phon)
+				# now merge leading vowels except 'o' and 'u'
+				if len(phon) > 1:
+					phon = re.sub('^[aei]', '*', phon)
 				self.words.add(word)
 				self.word[word].append(phon)
 				self.phon[phon].append(word)

@@ -148,7 +148,7 @@ class Chick:
 			'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/ngram3.bin')
 		self.w = Words(NGram3BinWordCounter(self.g.ng))
 		logger.debug('  phon')
-		self.p = Phon(self.w)
+		self.p = Phon(self.w, self.g)
 		logger.debug('done.')
 		# sanity-check junk
 		logger.debug('w.correct(naieve)=%s' % self.w.correct(u'naieve'))
