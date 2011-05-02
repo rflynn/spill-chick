@@ -9,7 +9,7 @@ build-py3:
 	sudo python3 setup.py install
 
 data: ngram3bin-compact
-	./fetch.py
+	./fetch.py --run
 	./extract.py
 	./import2bin.py
 	./ngram3bin-compact
