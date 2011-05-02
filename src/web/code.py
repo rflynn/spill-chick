@@ -5,6 +5,8 @@
 web-based spill-chick front-end
 
 setup:
+	* mkdir session/
+		(I tried adding it to the project but git can't hold empty directories and session/.gitignore kludge got deleted by the webserver, apparently)
 	* ensure webserver user has
 		* read access to ngram3.bin and word.bin files
 		* write access to session/ directory
