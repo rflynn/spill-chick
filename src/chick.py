@@ -310,7 +310,15 @@ class Chick:
 			repl = [(t, c[1], c[2], c[3]) for c,t in zip(ctx[index:], s)]
 			ctx2 = ctx[:index] + repl + ctx[index+len(ng):]
 			# store the side-by-side token difference for later
-			diff = list(zip_longest(ng, s, ''))
+			def zip_ngpos_str(ng, s):
+				# return must be (('orig', line, index, startpos), 'new')
+				if len(ng) > len(s):
+					return zip_longest(ng, s, '')
+				elif len(ng) < len(s):
+					pad = ('', ng[-1][1], ng[-1][2], ng[-1][3])
+					return zip(list(ng)+[pad], s)
+				return zip(ng, s)
+			diff = list(zip_ngpos_str(ng, s))
 			return (tuple(c[0] for c in ctx2 if c[0]), ng, s, diff)
 
 		def realize_suggest(ctx, sugg):
