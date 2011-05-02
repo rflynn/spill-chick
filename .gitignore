@@ -4,3 +4,4 @@ src/test.prof
 data/corpus/*.gz
 data/cmudict/cmudict.0.7a
 misc/
+src/scratch
