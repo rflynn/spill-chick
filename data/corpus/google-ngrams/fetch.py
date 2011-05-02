@@ -6,6 +6,22 @@ run me, then extract.py
 enumerate, download, extract, filter and delete files
 """
 
+"""
+Traceback (most recent call last):
+  File "./fetch.py", line 70, in <module>
+    download(url, dst)
+  File "./fetch.py", line 22, in download
+    chunk = req.read(CHUNK)
+  File "/usr/lib/python2.6/socket.py", line 353, in read
+    data = self._sock.recv(left)
+  File "/usr/lib/python2.6/httplib.py", line 538, in read
+    s = self.fp.read(amt)
+  File "/usr/lib/python2.6/socket.py", line 353, in read
+    data = self._sock.recv(left)
+socket.error: [Errno 104] Connection reset by peer
+make: *** [data] Error 1
+"""
+
 import datetime
 
 def log(what, msg):
@@ -16,12 +32,18 @@ import urllib2
 def download(url, dst):
 	log(dst, 'download')
 	CHUNK = 2 * 1024 * 1024
-	req = urllib2.urlopen(url)
-	with open(dst, 'wb') as fp:
-		while 1:
-			chunk = req.read(CHUNK)
-			if not chunk: break
-			fp.write(chunk)
+	while True:
+		try:
+			req = urllib2.urlopen(url)
+			with open(dst, 'wb') as fp:
+				while 1:
+					chunk = req.read(CHUNK)
+					if not chunk: break
+					fp.write(chunk)
+			break
+		except socket.error:
+			log(dst, 'error, continuing...')
+			continue
 	return dst
 
 import re, collections
