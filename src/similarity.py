@@ -10,7 +10,11 @@ incorporate:
 	popularity/frequency
 """
 
-from math import log
+from math import sqrt
+
+# based on our logarithmic scoring below
+DECENT_SCORE = 10.0
+GOOD_SCORE = 15.0
 
 def damerau_levenshtein(seq1, seq2):
     """Calculate the Damerau-Levenshtein distance between sequences.
@@ -125,7 +129,7 @@ def sim_score_ngram(ng, alt, p, g):
 		#	e.g. 'win or lose' > 'win or loose'
 		# but not allow very frequent entries from overriding all similar ones
 		#	e.g. 
-		log(max(1,alt[-1])) / (sim+1),
+		sqrt(max(1,alt[-1])) / (1+sim),
 		sim,	# how much i changed
 		alt[-1]) # frequency
 
