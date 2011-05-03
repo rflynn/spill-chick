@@ -197,7 +197,9 @@ class Chick:
 			phonpop = []
 		else:
 			# remove any words that do not meet the minimum frequency; they cannot possibly be part of the answer
-			phonwords2 = [[[w for w in p if self.g.freqs(w) > minfreq] for p in pw] for pw in phonwords]
+			phonwords2 = [[[w for w in p if self.g.freq(tuple(w)) > minfreq]
+						for p in pw]
+							for pw in phonwords]
 			logger.debug('phonwords2 lengths=%s product=%u' % \
 				(' '.join([str(len(p)) for p in phonwords2[0]]),
 				 reduce(lambda x,y:x*y, [len(p) for p in phonwords2[0]])))
@@ -211,9 +213,10 @@ class Chick:
 			# we should force a limit to the length of any list passed to it to ensure
 			# the avoidance of any pathological behavior
 			phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
-			#logger.debug('phonwords4=(%u)%s...' % (len(phonwords4), phonwords4[:10]))
+			logger.debug('phonwords4=(%u)%s...' % (len(phonwords4), phonwords4[:20]))
 			# look up ngram popularity, toss anything not more popular than original and sort
-			phonpop = rsort1([(pw, self.g.freq(pw)) for pw in phonwords4])
+			phonwordsx = [tuple(flatten(p)) for p in phonwords4]
+			phonpop = rsort1([(pw, self.g.freq(pw)) for pw in phonwordsx])
 			#logger.debug('phonpop=(%u)%s...' % (len(phonpop), phonpop[:10]))
 			phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
 			#logger.debug('phonpop=%s...' % (phonpop[:10],))
