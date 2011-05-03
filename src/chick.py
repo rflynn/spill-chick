@@ -392,10 +392,8 @@ class Chick:
 		logger.debug('realdiff=%s' % (rdbest,))
 		for rstr,(score,_) in rdbest:
 			logger.debug('best %s %s' % (rstr, score))
-		# extract the suggested changes and return them
-		bestsuggs = [rd[1][1][0] for rd in rdbest[:max_suggest]]
-		logger.debug('bestsuggs=%s' % (bestsuggs,))
-		return bestsuggs
+
+		return rdbest
 
 	def suggest(self, txt, max_suggest=1, skip=[]):
 		"""
@@ -443,21 +441,32 @@ sugg                future would undoubtedly 0
 sugg                       would undoubtedly be 3111
 sugg                             undoubtedly be changed 0
 		"""
+
 		least_common = sort1(d.ngramfreq(self.g, ngsize))
 		logger.debug('least_common=%s' % least_common[:20])
 		least_common = list(dropwhile(lambda x: x[0] in skip, least_common))
 
+		# gather all suggestions for all least_common ngrams
+		suggestions = []
 		while least_common:
 			target_ngram,target_freq = least_common.pop(0)
-			best = self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
-			logger.debug('ngram_suggest=%s' % best)
-			if not best or all(b[0][0] == b[1] for b in best[0]):
-				continue
-			yield (target_ngram, best)
-			logger.debug('least_common=%s...' % least_common[:20])
-			# FIXME: currently we're re-doing 99% of the same work each time
-			# instead, do more work up-front and save it!
-			break
+			suggestions += self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
+
+		logger.debug('suggestions=%s' % (suggestions[:10],))
+
+		# calculate which suggestion makes the most difference
+		bestsuggs = sorted(suggestions, key=lambda x:x[1][0], reverse=True)
+		logger.debug('bestsuggs=%s' % (bestsuggs[:10],))
+		if bestsuggs:
+			bs = bestsuggs[0]
+			best = bs[1][1][0]
+			target_ngram = [b[0] for b in best]
+			yield (target_ngram, [best])
+
+		# TODO: now the trick is to a) associate these together based on target_ngram
+		# to make them persist along with the document
+		# and to recalculate them as necessary when a change is applied to the document that
+		# affects anything they overlap
 
 	def correct(self, txt):
 		"""
