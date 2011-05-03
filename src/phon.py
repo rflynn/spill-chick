@@ -7,6 +7,7 @@ Handle phonetics; i.e. the way things sound
 
 import collections, re, sys, gzip, pickle, os, mmap
 from word import Words
+from gram import tokenize
 
 class Phon:
 	def __init__(self, w, g):
@@ -41,11 +42,13 @@ class Phon:
 				certain minimum frequency which may exclude very obscure words from ultimately
 				appearing at all.
 				"""
+
 				# TODO: what i really should do is eliminate all words that appear less
 				# than some statistically significant time; the vast majority of the
 				# phonetic phrases I currently try are filled with short obscure words
 				# and are a complete waste
-				if g.freqs(word) == 0:
+				# FIXME: instead of hard-coding frequency, calculate statistically
+				if word.count("'") == 0 and g.freqs(word) < 500:
 					continue
 				"""
 				implement a very rough phonic fuzzy-matching
@@ -67,7 +70,8 @@ class Phon:
 					phon = re.sub('^[aei]', '*', phon)
 				self.words.add(word)
 				self.word[word].append(phon)
-				self.phon[phon].append(word)
+				toks = tokenize(word)
+				self.phon[phon].append(toks)
 
 	"""
 	return a list of words that sound like 'word', as long as they appear in ng
