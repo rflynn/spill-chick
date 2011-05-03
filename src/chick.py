@@ -248,27 +248,34 @@ class Chick:
 		toks = [t[0] for t in target_ngram]
 		logger.debug('toks=%s' % (toks,))
 
-		perms = []
-
-		# permutations by phonic similarity
-		phon = self.phonGuess(toks, target_freq)
-		logger.debug('phonGuess(%s)=%s' % (toks, phon))
-		if phon:
-			perms += [[p[0] for p in phon]]
+		part = []
 
 		# permutations via token joining
-		perms += list(Chick.permjoin(toks))[1:]
-		logger.debug('permjoin(%s)=%s' % (toks, perms))
-
-		part = [tuple(j + [self.g.freq(tuple(j))]) for j in perms]
+		# expense: cheap, though rarely useful
+		part += [tuple(c + [self.g.freq(tuple(c))]) for c in Chick.permjoin(toks)]
+		logger.debug('permjoin(%s)=%s' % (toks, part))
 
 		# permutations via ngram3 partial matches
+		# expense: relatively high, but best results
 		part += self.g.ngram_like(toks)
 		logger.debug('part=%s...' % part[:10])
 
 		# calculate the closest, best ngram in part
 		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
 		logger.debug('sim=%s' % sim[:10])
+
+		# if what we've tried so far hasn't produced good results...
+		if not sim or sim[0][1][0] < similarity.DECENT_SCORE:
+			# permutations by phonic similarity
+			# cost: expensive, but does a good job of catching homophone errors
+			phon = self.phonGuess(toks, target_freq)
+			logger.debug('phonGuess(%s)=%s' % (toks, phon))
+			if phon:
+				#phonGuess([u'eye', u'halve', u'a'])=[[u'i'], [u'have'], [u'a']]
+				flatphon = tuple(flatten(phon))
+				part += [tuple(list(flatphon) + [self.g.freq(flatphon)])]
+				sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
+
 		best = [(tuple(alt[:-1]),scores) for alt,scores in sim
 			if scores[0] > 0][:max_suggest]
 		logger.debug('*** BEST=%s' % best)
