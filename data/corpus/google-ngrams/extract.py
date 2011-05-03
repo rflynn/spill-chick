@@ -34,7 +34,7 @@ for nth,filename in enumerate(filenames):
 	with os.popen('gunzip -dc ' + filename, 'r') as gunzip:
 		contents = '\n' + gunzip.read()
 	with os.popen('gzip -c - > ' + dst, 'wb') as gz:
-		for x,y,z,cnt in re.findall('\n([^\d\W]+) ([^\d\W]+) ([^\d\W]+)\t(\d+)', contents):
+		for x,y,z,cnt in re.findall('\n(\S+) (\S+) (\S+)\t(\d+)', contents):
 			xid, yid, zid = getid(x), getid(y), getid(z)
 			gz.write('%u,%u,%u,%u\n' % (xid, yid, zid, int(cnt)))
 
