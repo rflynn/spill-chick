@@ -525,14 +525,44 @@ ngram3 * ngram3bin_follows(const ngram3 *find, const struct ngram3map *m)
 
 #ifdef TEST
 
+/*
+ * dump binary entries for sanity checking
+ */
+static void ngram3bin_dump(const struct ngram3map *m, const struct ngramword w)
+{
+	const ngram3 *cur = m->m;
+	const ngram3 *end = (ngram3*)((char*)cur + m->size);
+	while (cur < end)
+	{
+		printf("%6lu:%-16s %6lu:%-16s %6lu:%-16s %8lu\n",
+			(unsigned long)cur->id[0], ngramword_id2word(cur->id[0], w),
+			(unsigned long)cur->id[1], ngramword_id2word(cur->id[1], w),
+			(unsigned long)cur->id[2], ngramword_id2word(cur->id[2], w),
+			(unsigned long)cur->freq);
+		cur++;
+	}
+}
+
 int main(void)
 {
-	const char *path = "ngram3.bin";
-	struct ngram3map m = ngram3bin_init(path, 0);
-	const ngram3 find = { 5, 6, 7, 0 };
-	printf("map %llu bytes (%llu ngram3s)\n", m.size, m.size / sizeof find);
-	ngram3bin_find(find, m);
-	ngram3bin_fini(m);
+	struct ngram3map mb = ngram3bin_init("ngram3.bin", 0);
+	struct ngram3map mw = ngram3bin_init("word.bin", 0);
+	struct ngramword w = ngramword_load(mw);
+	const ngram3 find = { 5, 29835, 22, 0 }; // am fond of
+// googlebooks-eng-all-3gram-20090715-24.csv.zip-2008.list.gz
+// 552621:am fond of       3170
+// $ zcat googlebooks-eng-all-3gram-20090715-24.csv.zip-2008.ids.gz | grep -In '^5,29835,22,3170$'
+// 427250:5,29835,22,3170
+	printf("map %llu bytes (%llu ngram3s)\n", mb.size, mb.size / sizeof find);
+	printf("freq of %lu.%lu.%lu: %lu\n",
+		(unsigned long)find.id[0],
+		(unsigned long)find.id[1],
+		(unsigned long)find.id[2],
+		ngram3bin_freq(find, &mb));
+	ngram3bin_dump(&mb, w);
+	ngram3bin_fini(mb);
+	ngramword_fini(w);
+	ngram3bin_fini(mw);
 	return 0;
 }
 
