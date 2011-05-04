@@ -10,4 +10,5 @@ build/*
 ngram3.bin.*
 ngram3bin
 ngram3bin-compact
+import2bin-ngram
 cscope.out
