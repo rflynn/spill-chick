@@ -64,9 +64,10 @@ def extract(filename, gzfile):
 				out.write('%s\t%s\n' % (k, d[k]))
 
 def delete(filename):
-	log(filename, 'delete')
 	try:
-		os.remove(filename)
+		if os.path.exists(filename):
+			log(filename, 'delete')
+			os.remove(filename)
 	except:
 		pass
 
