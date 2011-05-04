@@ -13,7 +13,7 @@ ng.like(5,6,7)
 [(ng.id2word(x), ng.id2word(y), ng.id2word(z), freq)
 	for x,y,z,freq in ng.like(*[ng.word2id(w) for w in ['activities','as','buddhist']])]
 ng.freq(1,2)
-ng.like(3,4)
+#ng.like(3,4)
 print('idknow')
 idknow = ng.word2id('know')
 print('word(idknow)')
@@ -51,15 +51,17 @@ Test = [
 	'cheese burger',
 	'cheeseburger',
 	'don t',
+	"don ' t",
 	'don',
 	'dont',
+	"don't",
 ]
 for s in Test:
 	t = s.lower().split()
 	ids = [ng.word2id(w) for w in t]
 	frfunc = ng.freq if len(ids) > 1 else ng.id2freq
 	print((t, 'freq:', frfunc(*ids), 'ids:', ids))
-	assert all(ng.id2word(ng.word2id(w)) == w for w in t)
+	assert all(ng.id2word(ng.word2id(w)) == w or ng.word2id(w) == 0 for w in t)
 
 for foo in ['don','dont']:
 	[(foo,ng.id2word(x), y) for x,y in ng.follows(ng.word2id(foo))[:100]]
