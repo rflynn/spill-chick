@@ -5,33 +5,17 @@ import os
 """
 extract.py generated:
 	word.csv.gz: master word file (word id,word)
-	*-2008.list.gz: files of 3-ary ngrams (id0,id1,id2,cnt)
+	*-2008.ids.gz: files of 3-ary ngrams (id0,id1,id2,freq)
 
-our goal:
-	generate ngram.db: import csv data into sqlite database
-		ngram.db.word <- master word file
-			gunzip/gzip
-			sqlite's .import
-		ngram.db.ngram3 <- ngrams
-			concatenate ngram lists into a single csv.gz file
-				gunzip/gzip
-				sqlite's .import
-
-note: sqlite is very reliable, but it works against us performance-wise in large imports;
-disable any notion of safety and don't create table indexes until they are built
-"""
-
-"""
-yup, it turns out that sqlite just has too much per-row overhead.
-the database, sans indexes, ended up being larger than ~4GB csv file!
-instead, use a custom binary format
+we take word.csv.gz, which is already in sorted order by id ascending,
+and compact the words into binary format and write to word.bin
 """
 
 from struct import pack,unpack
 with os.popen('gzip -dc word.csv.gz', 'r') as gz:
 	with open('word.bin', 'wb') as bin:
 		for line in gz:
-			wid,word = line.rstrip().split(',')
+			wid,word = line.rstrip().split(',', 1)
 			wid = int(wid)
 			bword = bytes(word, 'utf-8')
 			wlen = len(bword)
@@ -44,81 +28,4 @@ with os.popen('gzip -dc word.csv.gz', 'r') as gz:
 			"""
 			bin.write(pack('<i', wlen) + bword)
 
-# note: following takes ~35 minutes to process 4GB/~200M UTF-8 lines into ~100M binary on my machine
-# note: port following the C
 
-if not os.path.exists('2008-ngram3-ids.csv'):
-	print('*-2008.ids.gz -> 2008-ngram3-ids.csv')
-	os.system('gzip -dc *-2008.ids.gz > 2008-ngram3-ids.csv')
-	print('  done.')
-
-# NOTE: MinFreq = 100 yields 100MB, but the phrase "didn,t,know" did not appear in it.
-# MinFreq= 20 ngcnt= 31175558 = ~500MB
-MinFreq = 20
-ngcnt = 0
-leftover = ''
-with open('2008-ngram3-ids.csv', 'r') as gz:
-	with open('ngram3.bin', 'wb') as bin:
-		while 1:
-			buf = gz.read(8 * 1024 * 1024)
-			if not buf:
-				break
-			buf = leftover + buf
-			lines = buf.split('\n')
-			leftover = '' if buf.endswith('\n') else lines.pop()
-			ngbytes = b''
-			for line in lines:
-				try:
-					ng = tuple(map(int, line.split(',')))
-					if ng[3] >= MinFreq:
-						ngbytes += pack('<iiii', *ng)
-						ngcnt += 1
-				except ValueError as e:
-					print('error on line "%s": %s' % (line, e))
-			bin.write(ngbytes)
-print('MinFreq=',MinFreq,'ngcnt=',ngcnt)
-
-"""
-import os
-from glob import glob
-
-def touch(fname):
-	with open(fname, 'a') as x:
-		pass
-
-def makefaster(db):
-	# ref: http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragmas
-	db.write('pragma synchronous = OFF;\n')
-	db.write('pragma count_changes = OFF;\n')
-	db.write('pragma temp_store = MEMORY;\n')
-	for n in range(11, 16+1):
-		db.write('pragma page_size = %u;\n' % 2**n)
-
-print('word.csv.gz -> word.csv')
-os.system('gunzip word.csv.gz 2>/dev/null')
-touch('ngram.db')
-
-print('word.csv.gz -> ngram.db...')
-with os.popen('sqlite3 :memory:', 'w') as db:
-	makefaster(db)
-	db.write('attach database "ngram.db" as ng;\n')
-	db.write('create table ng.word (id int primary key, word text not null);\n')
-	db.write('create table word (id int primary key, word text not null);\n')
-	print('  word.csv.gz -> sqlite :memory:')
-	db.write('.separator ","\n')
-	db.write('.import word.csv word\n')
-	print('  sqlite :memory: -> ngram.db')
-	db.write('insert into ng.word select id,word from word;\n')
-	print('  done.')
-
-print('2008-ngram3-ids.csv -> ngram.db...')
-with os.popen('sqlite3 ngram.db', 'w') as db:
-	makefaster(db)
-	db.write('create table ngram3 (id0 int, id1 int, id2 int, cnt int);\n')
-	print('  importing...')
-	db.write('.separator ","\n')
-	db.write('.import 2008-ngram3-ids.csv ngram3\n')
-	print('  done.')
-
-exit(0)
-"""
