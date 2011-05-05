@@ -288,6 +288,8 @@ class Chick:
 				#phonGuess([u'eye', u'halve', u'a'])=[[u'i'], [u'have'], [u'a']]
 				flatphon = tuple(flatten(phon))
 				part += [tuple(list(flatphon) + [self.g.freq(flatphon)])]
+				# FIXME: complete re-evaluation is wasteful; new members
+				# should be score, sorted and merged instead
 				sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
 				logger.debug('sim=(%u)%s...' % (len(sim), sim[:30],))
 				for ngpop,score in sim:
