@@ -21,6 +21,8 @@ Mutations
 	* deletion : item missing
 	* transposition : correct items, incorrect order
 
+TODO:
+	* pre-calculate token joining and merging
 
 """
 
