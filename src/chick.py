@@ -257,17 +257,21 @@ class Chick:
 
 		# permutations via token joining
 		# expense: cheap, though rarely useful
-		part += [tuple(c + [self.g.freq(tuple(c))]) for c in Chick.permjoin(toks)]
-		logger.debug('permjoin(%s)=%s' % (toks, part))
+		# TODO: smarter token joining; pre-calculate based on tokens
+		part += [tuple(c + [self.g.freq(tuple(c))])
+				for c in Chick.permjoin(toks)][1:]
+		#logger.debug('permjoin(%s)=%s' % (toks, part))
 
 		# permutations via ngram3 partial matches
 		# expense: relatively high, but best results
 		part += self.g.ngram_like(toks)
-		logger.debug('part=%s...' % part[:10])
+		logger.debug('part=%s...' % \
+			(' '.join(['%s:%s' % (' '.join(p[:-1]),p[-1]) for p in part[:10]]),))
 
 		# calculate the closest, best ngram in part
 		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
-		logger.debug('sim=%s' % sim[:10])
+		for ngpop,score in sim[:10]:
+			logger.debug('sim %4.1f %s' % (score[0], ' '.join(ngpop[:-1])))
 
 		# if what we've tried so far hasn't produced good results...
 		if not sim or sim[0][1][0] < similarity.DECENT_SCORE:
@@ -283,7 +287,8 @@ class Chick:
 
 		best = [(tuple(alt[:-1]),scores) for alt,scores in sim
 			if scores[0] > 0][:max_suggest]
-		logger.debug('*** BEST=%s' % best)
+		for ngpop,score in best[:10]:
+			logger.debug('best %4.1f %s' % (score[0], ' '.join(ngpop[:-1])))
 		return best
 
 	# currently if we're replacing a series of tokens with a shorter one we pad with an empty string
@@ -320,7 +325,6 @@ class Chick:
 		sugg = [(ng, self.do_suggest(ng, self.g.freq([x[0] for x in ng]), context_ngrams, d))
 			for ng in [target_ngram]] #context_ngrams]
 
-		logger.debug('sugg=%s' % (sugg,))
 		for ng,su in sugg:
 			for s,sc in su:
 				logger.debug('sugg %s%s %u' % \
@@ -366,7 +370,6 @@ class Chick:
 
 		# merge suggestions based on what they change
 		realized = realize_suggest(context, sugg)
-		logger.debug('realized=%s' % (realized,))
 		realdiff = {}
 		for real in realized:
 			for (rngtxt,rngpos,rsugg,rdiff),diff in real:
@@ -383,7 +386,8 @@ class Chick:
 				diff = tuple(reduce(lambda x,y:map(sum,zip(x,y)),
 					[r[0][1] for r in rsc]))
 				
-				logger.debug('real %s diff=%s rsc=%s' % (rstr, diff, rsc))
+				
+				logger.debug('real %s %4.1f rsc=%s' % (rstr, diff[0], rsc))
 				# merge suggestions by their effects
 				rddiff, rdngpos = realdiff.get(rstr, ((0,0,0),[]))
 				rddiff = tuple(map(sum, zip(rddiff, diff)))
@@ -392,7 +396,7 @@ class Chick:
 
 		# sort the merged suggestions based on their combined score
 		rdbest = sorted(realdiff.items(), key=lambda x:x[1][0], reverse=True)
-		logger.debug('realdiff=%s' % (rdbest,))
+
 		for rstr,(score,_) in rdbest:
 			logger.debug('best %s %s' % (rstr, score))
 
@@ -455,11 +459,10 @@ sugg                             undoubtedly be changed 0
 			target_ngram,target_freq = least_common.pop(0)
 			suggestions += self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
 
-		logger.debug('suggestions=%s' % (suggestions[:10],))
-
 		# calculate which suggestion makes the most difference
 		bestsuggs = sorted(suggestions, key=lambda x:x[1][0], reverse=True)
-		logger.debug('bestsuggs=%s' % (bestsuggs[:10],))
+		for bstxt,((score,sim,freq),_) in bestsuggs:
+			logger.debug('bestsugg %6.2f %2u %6u %s' % (score, sim, freq, bstxt))
 		if bestsuggs:
 			bs = bestsuggs[0]
 			best = bs[1][1][0]
