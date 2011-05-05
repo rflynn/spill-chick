@@ -221,7 +221,12 @@ class Chick:
 			logger.debug('phonwords4=(%u)%s...' % (len(phonwords4), phonwords4[:20]))
 			# look up ngram popularity, toss anything not more popular than original and sort
 			phonwordsx = [tuple(flatten(p)) for p in phonwords4]
-			phonpop = rsort1([(pw, self.g.freq(pw)) for pw in phonwordsx])
+
+			# FIXME: sorting on frequency sum only usually ends up returning
+			# a short, common substring phrase with garbage after it, i.e.
+			# 'i was eluding' yields 'i was all ou dean' instead of 'i was alluding'
+			# because 'i was all' is immensely frequent.
+			phonpop = rsort1([(pw, self.g.freq(pw, min)) for pw in phonwordsx])
 			#logger.debug('phonpop=(%u)%s...' % (len(phonpop), phonpop[:10]))
 			phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
 			#logger.debug('phonpop=%s...' % (phonpop[:10],))
