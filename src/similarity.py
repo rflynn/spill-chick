@@ -10,11 +10,11 @@ incorporate:
 	popularity/frequency
 """
 
-from math import sqrt
+from math import sqrt,log
 
 # based on our logarithmic scoring below
-DECENT_SCORE = 10.0
-GOOD_SCORE = 15.0
+DECENT_SCORE = 5.0
+GOOD_SCORE = 10.0
 
 def damerau_levenshtein(seq1, seq2):
     """Calculate the Damerau-Levenshtein distance between sequences.
@@ -121,15 +121,11 @@ def sim_score_ngram(ng, alt, p, g):
 			# need a better way of handling token split/merge, for now just
 			# skip diff
 			sim += similarity(n, al, p)
-       			sl += int(n[0] == al[0]) # starts with same letter
+			sl += int(n and al and n[0] == al[0]) # starts with same letter
 	return (
-		# frequency divided by distance
-		# the corpus contains errors; we need to allow more frequent (hopefully correct)
-		# entries to override existing but infrequent errors that match perfectly,
-		#	e.g. 'win or lose' > 'win or loose'
-		# but not allow very frequent entries from overriding all similar ones
-		#	e.g. 
-		sqrt(max(1,alt[-1])) / (1+sim),
+		# scoring metric favors small difference over high frequency
+		log(max(1,alt[-1])) - (2+sim),
+		# these are not directly used, but available for inspection later
 		sim,	# how much i changed
 		alt[-1]) # frequency
 
