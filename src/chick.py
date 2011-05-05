@@ -289,6 +289,10 @@ class Chick:
 				flatphon = tuple(flatten(phon))
 				part += [tuple(list(flatphon) + [self.g.freq(flatphon)])]
 				sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
+				logger.debug('sim=(%u)%s...' % (len(sim), sim[:30],))
+				for ngpop,score in sim:
+					if u'alluding' in ngpop:
+						logger.debug('phonsim %4.1f %2u %s' % (score[0], score[1], ' '.join(ngpop[:-1])))
 
 		best = [(tuple(alt[:-1]),scores) for alt,scores in sim
 			if scores[0] > 0][:max_suggest]
