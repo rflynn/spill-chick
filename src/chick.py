@@ -16,6 +16,8 @@ Facts
 Mutations
 	* insertion : additional item
 		* duplication : correct item incorrectly number of times
+		* split	(its) -> (it,',s)
+		* merge (miss,spelling) -> (misspelling)
 	* deletion : item missing
 	* transposition : correct items, incorrect order
 
@@ -185,18 +187,19 @@ class Chick:
 
 	def phonGuess(self, toks, minfreq):
 		"""
-		given a list of tokens search for a list of words with similar pronunciation having g.freq(x) > minfreq
+		given a list of tokens search for a list of words with similar pronunciation
+		having g.freq(x) > minfreq
 		"""
 		# create a phentic signature of the ngram
 		phonsig = self.p.phraseSound(toks)
 		logger.debug('phonsig=%s' % phonsig)
-		# FIXME: this is useful but potentially results in a lot of work for some phrases.
 		phonwords = list(self.p.soundsToWords(phonsig))
 		logger.debug('phonwords=%s' % (phonwords,))
 		if phonwords == [[]]:
 			phonpop = []
 		else:
-			# remove any words that do not meet the minimum frequency; they cannot possibly be part of the answer
+			# remove any words that do not meet the minimum frequency;
+			# they cannot possibly be part of the answer
 			phonwords2 = [[[w for w in p if self.g.freq(tuple(w)) > minfreq]
 						for p in pw]
 							for pw in phonwords]
@@ -292,8 +295,7 @@ class Chick:
 	def ngram_suggest(self, target_ngram, target_freq, d, max_suggest=1):
 		"""
 		we calculate ngram context and collect solutions for each context
-		permutation containing the target. then merge these suggestions
-		into a cohesive, best suggestion.
+		containing the target, then merge them into a cohesive, best suggestion.
 			c d e
 		    a b c d e f g
 		given ngram (c,d,e), calculate context and solve:
@@ -374,7 +376,6 @@ class Chick:
 				rsc = [similarity.sim_order_ngrampop(x, [tuple(list(y)+[self.g.freq(y)])], self.p, self.g)
 					for x,y in zip(list2ngrams(ctoks, tlen),
 						       list2ngrams(rngtxt, tlen))]
-
 
 				# FIXME: overwriting diff
 				diff = tuple(reduce(lambda x,y:map(sum,zip(x,y)),
