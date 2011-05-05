@@ -121,10 +121,13 @@ def sim_score_ngram(ng, alt, p, g):
 			# need a better way of handling token split/merge, for now just
 			# skip diff
 			sim += similarity(n, al, p)
-			sl += int(n and al and n[0] != al[0]) # starts with same letter
+			sl += int(n[0] != al[0] if n and al else 0) # starts with same letter
 	return (
 		# scoring metric favors small difference over high frequency
-		log(max(1,alt[-1])) - (2+sim+sl),
+		# count sl (same letter) differences where we change the first letter, but
+		# iff we count as different. for example, sim(eluding,alluding) == 0, even
+		# though sl would be 1 we don't count
+		log(max(1,alt[-1])) - (2 + sim + (sl if sim else 0)),
 		# these are not directly used, but available for inspection later
 		sim,	# how much i changed
 		alt[-1]) # frequency
