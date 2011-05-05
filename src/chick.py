@@ -168,6 +168,8 @@ class Chick:
 		logger.debug('g.freq((it,did))=%s' % self.g.freq((u'it',u'did')))
 		logger.debug('g.freq((hello,there,sir))=%s' % self.g.freq((u'hello',u'there',u'sir')))
 		logger.debug('g.freq((hello,there))=%s' % self.g.freq((u'hello',u'there')))
+		logger.debug('g.freq((hello,there,,))=%s' % self.g.freq((u'hello',u'there',u',')))
+		logger.debug('g.freq((they,\',re))=%s' % self.g.freq((u'they',u"'",u're')))
 
 	def alternatives(self, d, t, freq):
 		"""
