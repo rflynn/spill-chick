@@ -394,8 +394,7 @@ class Chick:
 				# FIXME: overwriting diff
 				diff = tuple(reduce(lambda x,y:map(sum,zip(x,y)),
 					[r[0][1] for r in rsc]))
-				
-				
+
 				logger.debug('real %s %4.1f rsc=%s' % (rstr, diff[0], rsc))
 				# merge suggestions by their effects
 				rddiff, rdngpos = realdiff.get(rstr, ((0,0,0),[]))
