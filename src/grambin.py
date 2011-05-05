@@ -13,7 +13,7 @@ class GramsBin:
 	def __init__(self, wordpath, ngrampath):
 		self.ng = ngram3bin(wordpath, ngrampath)
 
-	def freq(self, ng):
+	def freq(self, ng, sum_=sum):
 		#print('freq()=',ng)
 		l = len(ng)
 		if l > 1:
@@ -21,7 +21,7 @@ class GramsBin:
 			if l > 3:
 				# chop up id list into ngram3-sized chunks
 				smaller = [tuple(ids[i:i+3]) for i in range(len(ids)-3+1)]
-				fr = sum(self.ng.freq(*s) for s in smaller)
+				fr = sum_(self.ng.freq(*s) for s in smaller)
 			else:
 				fr = self.ng.freq(*ids)
 			return fr
