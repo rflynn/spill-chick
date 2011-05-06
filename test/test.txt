@@ -29,10 +29,29 @@ Summer is almost hear. : Summer is almost here.
 That is pretty much what I was eluding : That is pretty much what I was alluding
 I am very tried : I am very tired
 garden of eating : garden of eden
-garden of eatin' : garden of eden
+garden of eatin : garden of eden
 # no-ops
 i think so : i think so
+i now know : i now know
+
+# bestsugg   8.74  3 931301 that it is
+# bestsugg   7.95  0  21036 there it is
+# the "correct" solution is a close second because of the overwhelming frequency of the first
+# we need to more heavily weight the improvement of a diff of 0 (phonic difference) over higher
+# frequency.
+their it is : there it is
+
 #--end--
+
+I would have won if had one! : I would have one if I had won.
+I would have one if I had won! : I would have one if I had won!
+I would have one if I had one. : I would have one if I had one.
+I would have won if I had won. : I would have one if I had won.
+
+#I would have won two if had one too!
+#I would have one too if I had won one!
+#I would have one too if I had one too.
+#I would have won too if I had won one.
 
 # FAIL - 
 funky farm : funny farm # wrong first token not handled
@@ -53,13 +72,11 @@ bridge the gap. bridge the gas. : bridge the gap. bridge the gap. # multi-senten
 get what you payed for : get what you paid for
 #--end--
 
-
 # FIXME: these take ages and always fail
 doe sit use machien learning : does it use machine learning
 dose it use machien learning : does it use machine learning
 doze it use machien learning : does it use machine learning
 ##--end--
-
 
 # FIXME: I'm not sure but either I'm picking bad examples or something;
 # what i expect is not what the ngrams suggest. strange.
@@ -226,6 +243,14 @@ That it. : That's it.
 # we *can* tease this out, but the cost of doing so is just too high right now. in the future perhps we can fall back to more expensive methods when appropriate
 ifit'snotpurethecompilercan'toptimizeitlikeyouwant : if it's not pure the compiler can't optimize it like you want
 
+Software's inherit ability to adapt is part of what drives this differentiating factor. : Software's inherent ability to adapt is part of what drives this differentiating factor.
+
+Now is the time for all good people to come to the aid of there country : Now is the time for all good people to come to the aid of their country
+
+# real world examples that should be easily fixable
+hat are some example of public datasets that have randomized instruments? : what are some example of public datasets that have randomized instruments?
+I invite women over so that I have the motivation to stop being such a fucking slob for 12 seconds in the vein attempt at getting laid. : I invite women over so that I have the motivation to stop being such a fucking slob for 12 seconds in the vain attempt at getting laid.
+
 # phonetic numbers
 Thanks a lot m8. : Thanks a lot mate.
 I h8 it! : I hate it!
@@ -245,7 +270,26 @@ primitives are not implement as a direct call : primitives are not implemented a
 feel apart of something : feel a part of something
 I can't bring myself to an android phone : I can't bring myself to get an android phone # comcor
 
-nyc sing company : nyc sign company
+# not so sure about this one...
+Im pretty sure T-Rexs weren't that big. : I'm pretty sure T-Rexs weren't that big.
+
 # this is a real-world example of an uncommon n-gram transposition.
 # the only way we can detect these sorts of errors is to adapt our corpus
 # to handle context in a personalized way, by building a corpus out of local documents.
+nyc sing company : nyc sign company
+
+But it is a lot bulkier, and i teats batteries. : But it is a lot bulkier, and it eats batteries. # ycombinator on calculators
+
+# omission: trying to the -> trying to get the
+Norvig says that no one is listening to your calls on Google Voice — it is simply their servers trying to the translation right. : Norvig says that no one is listening to your calls on Google Voice — it is simply their servers trying to get the translation right. # slashdot
+
+# transcription: affectiveness -> effectiveness
+Part of their work is checking that server's affectiveness, too. : Part of their work is checking that server's effectiveness, too. # slashdot
+
+
+# transcription: Europe -> Europa
+Due to their size, atmospheric drag would slow them down without burning them up, allowing them to study the uppermost atmosphere of wherever they are deployed next: Venus, Titan, Europe, and Jupiter are all possibilities. : Due to their size, atmospheric drag would slow them down without burning them up, allowing them to study the uppermost atmosphere of wherever they are deployed next: Venus, Titan, Europa, and Jupiter are all possibilities. # slashdot
+
+# a moderate paragraph with absolutely nothing wrong with it
+# source: http://www.propublica.org/article/all-the-magnetar-trade-how-one-hedge-fund-helped-keep-the-housing-bubble
+In late 2005, the booming U.S. housing market seemed to be slowing. The Federal Reserve had begun raising interest rates. Subprime mortgage company shares were falling. Investors began to balk at buying complex mortgage securities. The housing bubble, which had propelled a historic growth in home prices, seemed poised to deflate. And if it had, the great financial crisis of 2008, which produced the Great Recession of 2008-09, might have come sooner and been less severe. : In late 2005, the booming U.S. housing market seemed to be slowing. The Federal Reserve had begun raising interest rates. Subprime mortgage company shares were falling. Investors began to balk at buying complex mortgage securities. The housing bubble, which had propelled a historic growth in home prices, seemed poised to deflate. And if it had, the great financial crisis of 2008, which produced the Great Recession of 2008-09, might have come sooner and been less severe.
