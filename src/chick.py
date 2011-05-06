@@ -272,7 +272,7 @@ class Chick:
 		# expense: relatively high, but best results
 		part += self.g.ngram_like(toks)
 		logger.debug('part=%s...' % \
-			(' '.join(['%s:%s' % (' '.join(p[:-1]),p[-1]) for p in part[:10]]),))
+			(', '.join(['%s:%s' % (' '.join(p[:-1]),p[-1]) for p in part[:10]]),))
 
 		# calculate the closest, best ngram in part
 		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
