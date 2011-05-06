@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-we need a good way to compare the similarity of two tokens
+token and ngram comparison
 incorporate:
 	edit-distance
-		consonants/vowels
+		consonants/vowels(?)
 	sound
 	popularity/frequency
 """
@@ -75,6 +75,7 @@ def overlap(s1, s2):
 
 def similarity(x, y, p):
 	"""
+	return tuple (effective difference, absolute distance)
 	given a string x, calculate a similarity distance for y [0, +inf).
 	smaller means more similar. the goal is to identify promising
 	alternatives for a given token within a document; we need to consider
@@ -82,15 +83,17 @@ def similarity(x, y, p):
 	"""
 	# tokens identical
 	if x == y:
-		return 0
+		return (0, 0)
+	damlev = damerau_levenshtein(x, y)
 	sx,sy = p.phraseSound([x]),p.phraseSound([y])
 	if sx == sy and sx:
 		# sound the same, e.g. there/their. consider these equal.
-		return 0
+		return (0, damlev)
 	# otherwise, calculate phonic/edit difference
-	return max(damerau_levenshtein(x, y),
+	return (max(damlev,
 		   min(overlap(sx, sy),
-		       abs(len(x)-len(y))))
+		       abs(len(x)-len(y)))),
+		damlev)
 
 def sim_score(x, y, p, g):
 	"""
@@ -108,35 +111,40 @@ def sim_order(tok, alts, p, g):
 	sim1 = [(alt, sim_score(tok, alt, p, g)) for alt in alts]
 	sim2 = sorted(sim1, key=lambda x:x[1][1], reverse=True)
 	sim3 = sorted(sim2, key=lambda x:x[1][2], reverse=True)
-	sim4 = sorted(sim3, key=lambda x:x[1][0])
+	sim4 = sorted(sim3, key=lambda x:x[1][0]) # FIXME
 	return sim4
 
-def sim_score_ngram(ng, alt, p, g):
+def sim_score_ngram(ng, ngfreq, alt, p, g):
 	"""
 	given ngrams ng and alt calculate a sum-total of differences for each token
 	"""
-	sim,sl = 0,0
+	ediff,adiff,sl = 0,0,0
 	if len(alt) == len(ng)+1:
 		for n,al in zip(ng,alt[:-1]):
 			# need a better way of handling token split/merge, for now just
 			# skip diff
-			sim += similarity(n, al, p)
+			e,a = similarity(n, al, p)
+			ediff += e
+			adiff += a
 			sl += int(n[0] != al[0] if n and al else 0) # starts with same letter
 	return (
 		# scoring metric favors small difference over high frequency
 		# count sl (same letter) differences where we change the first letter, but
 		# iff we count as different. for example, sim(eluding,alluding) == 0, even
 		# though sl would be 1 we don't count
-		log(max(1,alt[-1])) - (2 + sim + (sl if sim else 0)),
+		(log(max(1,alt[-1]-ngfreq)) - (2 + ediff + (sl if ediff else 0))) + (adiff - ediff),
 		# these are not directly used, but available for inspection later
-		sim,	# how much i changed
-		alt[-1]) # frequency
+		ediff,
+		adiff,
+		alt[-1],
+		ngfreq) # frequency
 
 def sim_order_ngrampop(ng, alts, p, g):
 	#print 'ng=',ng,'alts=',alts[:10],'...'
-	sim1 = [(alt, sim_score_ngram(ng, alt, p, g)) for alt in alts]
-	sim2 = sorted(sim1, key=lambda x:x[1][2], reverse=True)
-	sim3 = sorted(sim2, key=lambda x:x[1][1], reverse=True)
+	ngfreq = g.freq(ng)
+	sim1 = [(alt, sim_score_ngram(ng, ngfreq, alt, p, g)) for alt in alts]
+	sim2 = sorted(sim1, key=lambda x:x[1][3], reverse=True)
+	sim3 = sorted(sim2, key=lambda x:x[1][2], reverse=True)
 	sim4 = sorted(sim3, key=lambda x:x[1][0], reverse=True)
 	#print 'sim_order_ngrampop=',sim4[:50],'...'
 	return sim4
