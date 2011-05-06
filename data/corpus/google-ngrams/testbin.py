@@ -1,4 +1,6 @@
 
+# Usage: python3 -i testbin.py
+
 from ngram3bin import ngram3bin
 #ng = ngram3bin('xxx') # too few parameters
 ng = ngram3bin('word.bin','ngram3.bin')
@@ -55,6 +57,11 @@ Test = [
 	'don',
 	'dont',
 	"don't",
+	'i was alluding',
+	'spill chick',
+	'spell check',
+	'spillchick',
+	'spellcheck',
 ]
 for s in Test:
 	t = s.lower().split()
