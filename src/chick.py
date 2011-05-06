@@ -148,6 +148,8 @@ class Chick:
 		# initialize all "global" data
 		logger.debug('loading...')
 		logger.debug('  corpus...')
+		# FIXME: using absolute paths is the easiest way to make us work from cmdline and invoked
+		# in a web app. perhaps we could set up softlinks in /var/ to make this slightly more respectable.
 		self.g = GramsBin(
 			'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/word.bin',
 			'/home/pizza/proj/spill-chick/data/corpus/google-ngrams/ngram3.bin')
@@ -218,16 +220,12 @@ class Chick:
 			#logger.debug('phonwords3=(%u)%s...' % (len(phonwords3), phonwords3))
 			# FIXME: product() function is handy in this case but is potentially hazardous.
 			# we should force a limit to the length of any list passed to it to ensure
-			# the avoidance of any pathological behavior
+			# the avoidance of any pathological, memory-filling, swap-inducing behavior
 			phonwords4 = list(flatten([list(product(*pw)) for pw in phonwords3]))
 			logger.debug('phonwords4=(%u)%s...' % (len(phonwords4), phonwords4[:20]))
 			# look up ngram popularity, toss anything not more popular than original and sort
 			phonwordsx = [tuple(flatten(p)) for p in phonwords4]
 
-			# FIXME: sorting on frequency sum only usually ends up returning
-			# a short, common substring phrase with garbage after it, i.e.
-			# 'i was eluding' yields 'i was all ou dean' instead of 'i was alluding'
-			# because 'i was all' is immensely frequent.
 			phonpop = rsort1([(pw, self.g.freq(pw, min)) for pw in phonwordsx])
 			#logger.debug('phonpop=(%u)%s...' % (len(phonpop), phonpop[:10]))
 			phonpop = list(takewhile(lambda x:x[1] > minfreq, phonpop))
