@@ -22,6 +22,7 @@ Mutations
 	* transposition : correct items, incorrect order
 
 TODO:
+	* figure out how to handle apostrophes
 	* pre-calculate token joining and merging
 
 """
