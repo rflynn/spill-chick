@@ -42,27 +42,21 @@ class GramsBin:
 		"""
 		if len(ng) != 3:
 			return []
-		#print('like()=',ng)
-		ids = tuple(map(self.ng.word2id, ng))
+		#print 'like()=',ng
+		ids = tuple(map(self.ng.word2id, [n[0] for n in ng]))
 		#print('like(ids)=',ids)
 		like = self.ng.like(*ids)
-		#print('like(',ng,')=',like)
-		"""
-		like2 = sorted(set([
-			(self.ng.id2word(t[0]),
-			 self.ng.id2word(t[1]),
-			 self.ng.id2word(t[2]), t[3])
-				for t in like]), key=itemgetter(3), reverse=True)
-		"""
+		#print 'like(',ng,')=',like
 		like2 = []
 		for l in set(like):
 			t,tfreq = tuple(map(self.ng.id2word, l[:3])), l[3]
 			# calculate the single differing token and build an NGramDiff
-			di = 0 if t[0] != ng[0] else 1 if t[1] != ng[1] else 2
-			ngd = NGramDiff(t[:di],
-					TokenDiff(ng[di:di+1], t[di:di+1],
-						  damerau_levenshtein(ng[di], t[di])),
-					t[di+2:], self, ngfreq, tfreq)
+			di = 0 if l[0] != ids[0] else 1 if l[1] != ids[1] else 2
+			newtok = (t[di],) + ng[di][1:]
+			ngd = NGramDiff(ng[:di],
+					TokenDiff(ng[di:di+1], [newtok],
+						  damerau_levenshtein(ng[di][0], t[di])),
+					ng[di+2:], self, ngfreq, tfreq)
 			like2.append(ngd)
 		like3 = sorted(like2, reverse=True)
 		return like2

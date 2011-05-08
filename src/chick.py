@@ -248,12 +248,15 @@ class Chick:
 		part += list(Chick.permjoin(target_ngram, self.g))
 		#logger.debug('permjoin(%s)=%s' % (target_ngram, part,))
 
+		part += self.g.ngram_like(target_ngram, target_freq)
+
+		logger.debug('part after ngram_like=%s...' % (part[:3],))
+
 		# calculate the closest, best ngram in part
 		sim = sorted([NGramDiffScore(ngd, self.p) for ngd in part])
 		for s in sim[:10]:
 			logger.debug('sim %s' % (s,))
 
-		#best = [(tuple(alt[:-1]),scores) for alt,scores in sim if scores[0] > 0][:max_suggest]
 		best = list(takewhile(lambda s:s.score > 0, sim))[:max_suggest]
 		for b in best:
 			logger.debug('best %s' % (b,))
@@ -333,7 +336,6 @@ class Chick:
 		logger.debug('utChanges=%s' % utChanges)
 		utChanges2 = list(filter(lambda x: x not in skip, utChanges))
 		for old,new in utChanges2:
-			#yield (ut[0], [[ut]])
 			td = TokenDiff([old], [new], damerau_levenshtein(old[0], new[0]))
 			ngd = NGramDiff([], td, [], self.g)
 			ngds = NGramDiffScore(ngd, None, 1)
@@ -376,8 +378,8 @@ sugg                             undoubtedly be changed 0
 		# calculate which suggestion makes the most difference
 		bestsuggs = sorted(suggestions, key=lambda x:x[1].score, reverse=True)
 		for bstxt,bss in bestsuggs:
-			logger.debug('bestsugg %6.2f %7u %s' % \
-				(bss.score, self.g.freq(bss.ngd.newtoks()), bstxt))
+			logger.debug('bestsugg %6.2f %2u %2u %7u %s' % \
+				(bss.score, bss.ediff, bss.ngd.diff.damlev, bss.ngd.newfreq, bstxt))
 		if bestsuggs:
 			bs = bestsuggs[0][1]
 			logger.debug('%s' % (bs,))

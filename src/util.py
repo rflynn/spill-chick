@@ -33,8 +33,8 @@ class TokenDiff:
 	merge:  TokenDiff([tok,tok], [tok'])
 	"""
 	def __init__(self, old, new, damlev):
-		self.old = old 
-		self.new = new
+		self.old = list(old)
+		self.new = list(new)
 		self.damlev = damlev # Damerau-Levenshtein distance
 	def oldtoks(self): return [t[0] for t in self.old]
 	def newtoks(self): return [t[0] for t in self.new]
@@ -57,9 +57,9 @@ class NGramDiff:
 		          `-O-'
 	"""
 	def __init__(self, prefix, diff, suffix, g, oldfreq=None, newfreq=None):
-		self.prefix = prefix
+		self.prefix = list(prefix)
 		self.diff = diff
-		self.suffix = suffix
+		self.suffix = list(suffix)
 		self.oldfreq = g.freq(self.oldtoks()) if oldfreq is None else oldfreq
 		self.newfreq = g.freq(self.newtoks()) if newfreq is None else newfreq
 	def old(self): return self.prefix + self.diff.old + self.suffix
@@ -87,8 +87,11 @@ class NGramDiffScore:
 	def __init__(self, ngd, p, score=None):
 		self.ngd = ngd
 		self.score = self.calc_score(ngd, p) if score is None else score
+		if score:
+			self.ediff = score
 	def calc_score(self, ngd, p):
 		ediff = self.similarity(ngd, p)
+		self.ediff = ediff
 		sl = int(ngd.diff.new and ngd.diff.old and ngd.diff.new[0][0] == ngd.diff.old[0][0])
 		score = ((log(max(1, ngd.newfreq - ngd.oldfreq)) -
 			  (2 + ediff + (sl if ediff else 0))) + (ngd.diff.damlev - ediff))
