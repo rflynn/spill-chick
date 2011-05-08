@@ -165,7 +165,8 @@ class Doc:
 		in lines with 'mod'
 		"""
 		d = ngd.diff # ngd.diff=TokenDiff(([(u'cheese', 0, 2, 9), (u'burger', 0, 3, 16)],[(u'cheeseburger', 0, 2, 9)]))
-		mod = d.newtoks()[0] # FIXME: need to deal with multiples!
+		# FIXME: deal with insertion
+		mod = d.newtoks()[0] # FIXME: need to deal with multiple tokens
 		old = d.old
 		# FIXME: ngd.old() can be 
 		print 'ngd.diff=%s' % (ngd.diff,)

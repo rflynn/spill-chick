@@ -329,11 +329,15 @@ class Chick:
 		# address unknown tokens (ngram size 1) first
 		ut = list(d.unknownToks())
 		logger.debug('unknownToks=%s' % ut)
-		utChanges = [(u, self.w.correct(u[0])) for u in ut]
+		utChanges = [(u, (self.w.correct(u[0]), u[1], u[2], u[3])) for u in ut]
 		logger.debug('utChanges=%s' % utChanges)
 		utChanges2 = list(filter(lambda x: x not in skip, utChanges))
-		for ut in utChanges2:
-			yield (ut[0], [[ut]])
+		for old,new in utChanges2:
+			#yield (ut[0], [[ut]])
+			td = TokenDiff([old], [new], damerau_levenshtein(old[0], new[0]))
+			ngd = NGramDiff([], td, [], self.g)
+			ngds = NGramDiffScore(ngd, None, 1)
+			yield ngds
 
 		"""
 		now the hard part.

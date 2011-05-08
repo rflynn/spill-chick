@@ -4,19 +4,19 @@
 # we need a way to associate a changed token with 0+ tokens so that we can accurately
 # calculate inter-token differences (in this case it should be 0)
 a double cheese burger in : a double cheeseburger in
-#--end--
+##--end--
 
 # FIXME: we calculate the diff of eluding -> alluding as 0 because their sounds match
 # but we must differentiate between a phonic change and an actual change that does nothing, i.e.
 # does not change the text at all; we should value the former more highly
-That is pretty much what I was eluding : That is pretty much what I was alluding
-#--end--
+#That is pretty much what I was eluding : That is pretty much what I was alluding
+##--end--
 
 # FIXME: this is a shortcoming of the unknown token corrector, a separate but important
 # part of our program that runs before all the other parts.
 # we must do a more thorough job of picking apart unknown tokens, try splitting/merging them with their surroundings
-spillchick : spellcheck
-#--end--
+#spillchick : spellcheck
+##--end--
 
 # test whether we're smart enough to prioritize "win or loose" -> "win or lose", which is a good fix
 #In 2005 we win or loose : In 2005 we win or lose
