@@ -64,6 +64,11 @@ class Words:
 
 	def known(self, words): return set(w for w in words if w in self.frq)
 
+	# FIXME: this does not always work
+	# example: 'passified' becomes 'assified' instead of 'pacified'
+	# TODO: lots of mis-spellings are phonetic; we should attempt to "sound out"
+	# unknown words, possibly by breaking them into pieces and trying to assemble the sound
+	# from existing words
 	# FIXME: douce -> douse
 	# FIXME: iv -> ivy
 	def correct(self, word):

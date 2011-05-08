@@ -329,11 +329,6 @@ class Chick:
 		# address unknown tokens (ngram size 1) first
 		ut = list(d.unknownToks())
 		logger.debug('unknownToks=%s' % ut)
-		# FIXME: this does not always work
-		# example: 'passified' becomes 'assified' instead of 'pacified'
-		# TODO: lots of mis-spellings are phonetic; we should attempt to "sound out"
-		# unknown words, possibly by breaking them into pieces and trying to assemble the sound
-		# from existing words
 		utChanges = [(u, self.w.correct(u[0])) for u in ut]
 		logger.debug('utChanges=%s' % utChanges)
 		utChanges2 = list(filter(lambda x: x not in skip, utChanges))
