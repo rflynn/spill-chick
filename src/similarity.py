@@ -11,89 +11,7 @@ incorporate:
 """
 
 from math import sqrt,log
-
-# based on our logarithmic scoring below
-DECENT_SCORE = 5.0
-GOOD_SCORE = 10.0
-
-def damerau_levenshtein(seq1, seq2):
-    """Calculate the Damerau-Levenshtein distance between sequences.
-
-    This distance is the number of additions, deletions, substitutions,
-    and transpositions needed to transform the first sequence into the
-    second. Although generally used with strings, any sequences of
-    comparable objects will work.
-
-    Transpositions are exchanges of *consecutive* characters; all other
-    operations are self-explanatory.
-
-    This implementation is O(N*M) time and O(M) space, for N and M the
-    lengths of the two sequences.
-
-    >>> dameraulevenshtein('ba', 'abc')
-    2
-    >>> dameraulevenshtein('fee', 'deed')
-    2
-
-    It works with arbitrary sequences too:
-    >>> dameraulevenshtein('abcd', ['b', 'a', 'c', 'd', 'e'])
-    2
-    """
-    # codesnippet:D0DE4716-B6E6-4161-9219-2903BF8F547F
-    # Conceptually, this is based on a len(seq1) + 1 * len(seq2) + 1 matrix.
-    # However, only the current and two previous rows are needed at once,
-    # so we only store those.
-    oneago = None
-    thisrow = range(1, len(seq2) + 1) + [0]
-    for x in xrange(len(seq1)):
-        # Python lists wrap around for negative indices, so put the
-        # leftmost column at the *end* of the list. This matches with
-        # the zero-indexed strings and saves extra calculation.
-        twoago, oneago, thisrow = oneago, thisrow, [0] * len(seq2) + [x + 1]
-        for y in xrange(len(seq2)):
-            delcost = oneago[y] + 1
-            addcost = thisrow[y - 1] + 1
-            subcost = oneago[y - 1] + (seq1[x] != seq2[y])
-            thisrow[y] = min(delcost, addcost, subcost)
-            # This block deals with transpositions
-            if (x > 0 and y > 0 and seq1[x] == seq2[y - 1] and seq1[x-1] == seq2[y] and seq1[x] != seq2[y]):
-                thisrow[y] = min(thisrow[y], twoago[y - 2] + 1)
-    return thisrow[len(seq2) - 1]
-
-def overlap(s1, s2):
-	"""
-	given a list of sound()s, count the number that do not match
-		 1  2  3  4  5  6
-		'T AH0 M AA1 R OW2'
-		'T UW1 M'
-                 =     =
-		6 - 2 = 4
-	"""
-	mlen = max(len(s1), len(s2))
-	neq = sum(map(lambda x: x[0] != x[1], zip(s1, s2)))
-	return mlen - neq
-
-def similarity(x, y, p):
-	"""
-	return tuple (effective difference, absolute distance)
-	given a string x, calculate a similarity distance for y [0, +inf).
-	smaller means more similar. the goal is to identify promising
-	alternatives for a given token within a document; we need to consider
-	the wide range of possible errors that may have been made
-	"""
-	# tokens identical
-	if x == y:
-		return (0, 0)
-	damlev = damerau_levenshtein(x, y)
-	sx,sy = p.phraseSound([x]),p.phraseSound([y])
-	if sx == sy and sx:
-		# sound the same, e.g. there/their. consider these equal.
-		return (0, damlev)
-	# otherwise, calculate phonic/edit difference
-	return (max(damlev,
-		   min(overlap(sx, sy),
-		       abs(len(x)-len(y)))),
-		damlev)
+from util import  damerau_levenshtein
 
 def sim_score(x, y, p, g):
 	"""
@@ -114,30 +32,6 @@ def sim_order(tok, alts, p, g):
 	sim4 = sorted(sim3, key=lambda x:x[1][0]) # FIXME
 	return sim4
 
-def sim_score_ngram(ng, ngfreq, alt, p, g):
-	"""
-	given ngrams ng and alt calculate a sum-total of differences for each token
-	"""
-	ediff,adiff,sl = 0,0,0
-	if len(alt) == len(ng)+1:
-		for n,al in zip(ng,alt[:-1]):
-			# need a better way of handling token split/merge, for now just
-			# skip diff
-			e,a = similarity(n, al, p)
-			ediff += e
-			adiff += a
-			sl += int(n[0] != al[0] if n and al else 0) # starts with same letter
-	return (
-		# scoring metric favors small difference over high frequency
-		# count sl (same letter) differences where we change the first letter, but
-		# iff we count as different. for example, sim(eluding,alluding) == 0, even
-		# though sl would be 1 we don't count
-		(log(max(1,alt[-1]-ngfreq)) - (2 + ediff + (sl if ediff else 0))) + (adiff - ediff),
-		# these are not directly used, but available for inspection later
-		ediff,
-		adiff,
-		alt[-1],
-		ngfreq) # frequency
 
 def sim_order_ngrampop(ng, alts, p, g):
 	#print 'ng=',ng,'alts=',alts[:10],'...'

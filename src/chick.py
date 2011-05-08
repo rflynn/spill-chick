@@ -27,6 +27,8 @@ TODO:
 
 """
 
+from util import *
+
 import logging
 
 logger = logging.getLogger('spill-chick')
@@ -39,7 +41,6 @@ def handleError(self, record):
 logging.Handler.handleError = handleError
 
 from math import log
-from operator import itemgetter
 from itertools import takewhile, dropwhile, product, cycle, chain
 from collections import defaultdict
 import bz2, sys, re, os
@@ -49,7 +50,6 @@ from phon import Phon
 from gram import Grams
 from grambin import GramsBin
 from doc import Doc
-import similarity
 
 logger.debug('sys.version=' + sys.version)
 
@@ -118,22 +118,6 @@ def levenshtein(a,b):
 
 	return current[n]
 
-# convenience functions
-def rsort(l, **kw): return sorted(l, reverse=True, **kw)
-def rsort1(l): return rsort(l, key=itemgetter(1))
-def rsort2(l): return rsort(l, key=itemgetter(2))
-def sort1(l): return sorted(l, key=itemgetter(1))
-def sort2(l): return sorted(l, key=itemgetter(2))
-def flatten(ll): return chain.from_iterable(ll)
-def zip_longest(x, y, pad=None):
-	x, y = list(x), list(y)
-	lx, ly = len(x), len(y)
-	if lx < ly:
-		x += [pad] * (ly-lx)
-	elif ly < lx:
-		y += [pad] * (lx-ly)
-	return zip(x, y)
-
 def list2ngrams(l, size):
 	"""
 	split l into overlapping ngrams of size
@@ -142,7 +126,6 @@ def list2ngrams(l, size):
 	if size >= len(l):
 		return [tuple(l)]
 	return [tuple(l[i:i+size]) for i in range(len(l)-size+1)]
-
 
 class Chick:
 	def __init__(self):
@@ -159,6 +142,7 @@ class Chick:
 		self.p = Phon(self.w, self.g)
 		logger.debug('done.')
 		# sanity-check junk
+		"""
 		logger.debug('w.correct(naieve)=%s' % self.w.correct(u'naieve'))
 		logger.debug('w.correct(refridgerator)=%s' % self.w.correct(u'refridgerator'))
 		logger.debug('g.freqs(refridgerator)=%s' % self.g.freqs(u'refridgerator'))
@@ -175,29 +159,14 @@ class Chick:
 		logger.debug('g.freq((hello,there))=%s' % self.g.freq((u'hello',u'there')))
 		logger.debug('g.freq((hello,there,,))=%s' % self.g.freq((u'hello',u'there',u',')))
 		logger.debug('g.freq((they,\',re))=%s' % self.g.freq((u'they',u"'",u're')))
-
-	def alternatives(self, d, t, freq):
 		"""
-		given tok ('token', line, index) return a list of possible alternative tokens.
-		only return alternatives within the realm of popularity of the original token.
-		"""
-		edit = self.w.similar(t)
-		phon = self.p.soundsLike(t, self.g)
-		uniq = edit | set(phon)
-		minpop = lambda x: round(log(self.g.freqs(x)+1))
-		freqpop = round(log(freq+1))
-		alt = [(x,levenshtein(t,x),minpop(x)) for x in uniq if minpop(x) >= freqpop]
-		#alt = rsort2(alt)
-		#alt = sort1(alt)
-		alt2 = [x[0] for x in alt]
-		return set(alt2)
 
 	def phonGuess(self, toks, minfreq):
 		"""
 		given a list of tokens search for a list of words with similar pronunciation
 		having g.freq(x) > minfreq
 		"""
-		# create a phentic signature of the ngram
+		# create a phonetic signature of the ngram
 		phonsig = self.p.phraseSound(toks)
 		logger.debug('phonsig=%s' % phonsig)
 		phonwords = list(self.p.soundsToWords(phonsig))
@@ -236,19 +205,33 @@ class Chick:
 		best = phonpop[0][0]
 		return [[x] for x in best]
 
+	# FIXME: when we generate permutations, we must save the original and tokens must be in a list
+	# this makes dealing with token split/merges handlable...
+	# instead of [x,y,z] -> [x',y',z']
+	# [x,y,z] -> [([x],[x']),([y],[y']),([z],[z'])]
+	# 
+	# instead of [x,y,z] -> [xy,z]
+	# [x,y,z] -> [([x,y],[xy]),([z],[z'])]
+	# 
+	# this would make the doc diffing easier, but would it actually make
+	# calculating the differences easier?
+	# perhaps i should do this, and include an adiff total...
+
 	@staticmethod
-	def permjoin(l):
+	def ngrampos_merge(x, y):
+		return (x[0]+y[0], x[1], x[2], x[3])
+
+	@staticmethod
+	def permjoin(l, g):
 		"""
-		given a list of strings, produce all permutations by joining two tokens together
-		example [a,b,c] [[a,bc],[ab,c]]
+		given a list of strings, produce permutations by joining two tokens together
+		example [a,b,c,d] -> [[ab,c,d],[a,bc,d],[a,b,cd]
 		"""
-		if len(l) < 2:
-			yield l
-		else:
-			for suf in Chick.permjoin(l[1:]):
-				yield [l[0]]+ suf
-			for suf in Chick.permjoin(l[2:]):
-				yield [l[0]+l[1]] + suf
+        	if len(l) > 1:
+                	for i in range(len(l)-1):
+                        	yield NGramDiff(l[:i],
+						TokenDiff(l[i:i+2], [Chick.ngrampos_merge(l[i],l[i+1])], 1),
+						l[i+2:], g)
 
 	def do_suggest(self, target_ngram, target_freq, ctx, d, max_suggest=5):
 		"""
@@ -256,60 +239,25 @@ class Chick:
 		that is similar textually and/or phonetically but is more frequent
 		"""
 
-		toks = [t[0] for t in target_ngram]
-		logger.debug('toks=%s' % (toks,))
-
+		target_ngram = list(target_ngram)
 		part = []
 
 		# permutations via token joining
 		# expense: cheap, though rarely useful
 		# TODO: smarter token joining; pre-calculate based on tokens
-		part += [tuple(c + [self.g.freq(tuple(c))])
-				for c in Chick.permjoin(toks)][1:]
-		#logger.debug('permjoin(%s)=%s' % (toks, part))
-
-		# permutations via ngram3 partial matches
-		# expense: relatively high, but best results
-		part += self.g.ngram_like(toks)
-		logger.debug('part=%s...' % \
-			(', '.join(['%s:%s' % (' '.join(p[:-1]),p[-1]) for p in part[:10]]),))
+		part += list(Chick.permjoin(target_ngram, self.g))
+		#logger.debug('permjoin(%s)=%s' % (target_ngram, part,))
 
 		# calculate the closest, best ngram in part
-		sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
-		for ngpop,score in sim[:10]:
-			logger.debug('sim %4.1f %s' % (score[0], ' '.join(ngpop[:-1])))
+		sim = sorted([NGramDiffScore(ngd, self.p) for ngd in part])
+		for s in sim[:10]:
+			logger.debug('sim %s' % (s,))
 
-		# if what we've tried so far hasn't produced good results...
-		if not sim or sim[0][1][0] < similarity.DECENT_SCORE:
-			# permutations by phonic similarity
-			# cost: expensive, but does a good job of catching homophone errors
-			phon = self.phonGuess(toks, target_freq)
-			logger.debug('phonGuess(%s)=%s' % (toks, phon))
-			if phon:
-				#phonGuess([u'eye', u'halve', u'a'])=[[u'i'], [u'have'], [u'a']]
-				flatphon = tuple(flatten(phon))
-				part += [tuple(list(flatphon) + [self.g.freq(flatphon)])]
-				# FIXME: complete re-evaluation is wasteful; new members
-				# should be score, sorted and merged instead
-				sim = similarity.sim_order_ngrampop(toks, part, self.p, self.g)
-				logger.debug('sim=(%u)%s...' % (len(sim), sim[:30],))
-				for ngpop,score in sim:
-					if u'alluding' in ngpop:
-						logger.debug('phonsim %4.1f %2u %s' % (score[0], score[1], ' '.join(ngpop[:-1])))
-
-		best = [(tuple(alt[:-1]),scores) for alt,scores in sim
-			if scores[0] > 0][:max_suggest]
-		for ngpop,score in best[:10]:
-			logger.debug('best %4.1f %s' % (score[0], ' '.join(ngpop[:-1])))
+		#best = [(tuple(alt[:-1]),scores) for alt,scores in sim if scores[0] > 0][:max_suggest]
+		best = list(takewhile(lambda s:s.score > 0, sim))[:max_suggest]
+		for b in best:
+			logger.debug('best %s' % (b,))
 		return best
-
-	# currently if we're replacing a series of tokens with a shorter one we pad with an empty string
-	# this remove that string for lookup
-	@staticmethod
-	def canon(ng):
-		if ng[-1] == '':
-			return tuple(list(ng)[:-1])
-		return ng
 
 	def ngram_suggest(self, target_ngram, target_freq, d, max_suggest=1):
 		"""
@@ -338,9 +286,8 @@ class Chick:
 			for ng in [target_ngram]] #context_ngrams]
 
 		for ng,su in sugg:
-			for s,sc in su:
-				logger.debug('sugg %s%s %u' % \
-					(' ' * ng[0][3], ' '.join(s), self.g.freq(Chick.canon(s))))
+			for s in su:
+				logger.debug('sugg %s' % (s,))
 
 		"""
 		previously we leaned heavily on ngram frequencies and the sums of them for
@@ -350,66 +297,22 @@ class Chick:
 		"filling in the gaps" of as many 0-freq ngrams as possible.
 		"""
 
-		def apply_suggest(ctx, ng, s):
-			# replace 'ng' slice of 'ctx' with contents of text-only ngram 's'
-			#logger.debug('apply_suggest(ctx=%s ng=%s s=%s)' % (ctx, ng, s))
-			ctx = copy.copy(ctx)
-			index = ctx.index(ng[0])
-			repl = [(t, c[1], c[2], c[3]) for c,t in zip(ctx[index:], s)]
-			ctx2 = ctx[:index] + repl + ctx[index+len(ng):]
-			# store the side-by-side token difference for later
-			def zip_ngpos_str(ng, s):
-				# return must be (('orig', line, index, startpos), 'new')
-				if len(ng) > len(s):
-					return zip_longest(ng, s, '')
-				elif len(ng) < len(s):
-					pad = ('', ng[-1][1], ng[-1][2], ng[-1][3])
-					return zip(list(ng)+[pad], s)
-				return zip(ng, s)
-			diff = list(zip_ngpos_str(ng, s))
-			return (tuple(c[0] for c in ctx2 if c[0]), ng, s, diff)
-
-		def realize_suggest(ctx, sugg):
-			"""
-			ctx is a list of positional ngrams; our 'target'
-			sugg is a list of changesets.
-			return map ctx x sugg
-			"""
-			#logger.debug('realize_suggest(ctx=%s sugg=%s)' % (ctx, sugg))
-			return [[(apply_suggest(ctx, ng, s), diff)
-				for s,diff in su]
-					for ng,su in sugg]
-
 		# merge suggestions based on what they change
-		realized = realize_suggest(context, sugg)
 		realdiff = {}
-		for real in realized:
-			for (rngtxt,rngpos,rsugg,rdiff),diff in real:
-				rstr = ' '.join(rngtxt)
-				# FIXME: trying to evaluate the change in its surrounding context;
-				# there must be a better way to do it than this
-				# FIXME: also, i need a way to handle token merges/deletes/insertions
-				# that allows meaningful comparison of ngrams from before and after
-				rsc = [similarity.sim_order_ngrampop(x, [tuple(list(y)+[self.g.freq(y)])], self.p, self.g)
-					for x,y in zip(list2ngrams(ctoks, tlen),
-						       list2ngrams(rngtxt, tlen))]
-
-				# FIXME: overwriting diff
-				diff = tuple(reduce(lambda x,y:map(sum,zip(x,y)),
-					[r[0][1] for r in rsc]))
-
-				logger.debug('real %s %4.1f rsc=%s' % (rstr, diff[0], rsc))
-				# merge suggestions by their effects
-				rddiff, rdngpos = realdiff.get(rstr, ((0,0,0),[]))
-				rddiff = tuple(map(sum, zip(rddiff, diff)))
-				rdngpos.append(rdiff)
-				realdiff[rstr] = (rddiff, rdngpos)
+		for ng,su in sugg:
+			for s in su:
+				rstr = ' '.join(s.ngd.newtoks())
+				if rstr in realdiff:
+					realdiff[rstr] += s
+				else:
+					realdiff[rstr] = s
+				logger.debug('real %s %s' % (rstr, realdiff[rstr]))
 
 		# sort the merged suggestions based on their combined score
-		rdbest = sorted(realdiff.items(), key=lambda x:x[1][0], reverse=True)
+		rdbest = sorted(realdiff.items(), key=lambda x:x[1].score, reverse=True)
 
-		for rstr,(score,_) in rdbest:
-			logger.debug('best %s %s' % (rstr, score))
+		for rstr,ngds in rdbest:
+			logger.debug('best %s %s' % (rstr, ngds))
 
 		return rdbest
 
@@ -470,15 +373,16 @@ sugg                             undoubtedly be changed 0
 			target_ngram,target_freq = least_common.pop(0)
 			suggestions += self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
 
+		logger.debug('suggestions=%s' % (suggestions,))
 		# calculate which suggestion makes the most difference
-		bestsuggs = sorted(suggestions, key=lambda x:x[1][0], reverse=True)
-		for bstxt,((score,sim,freq),_) in bestsuggs:
-			logger.debug('bestsugg %6.2f %2u %6u %s' % (score, sim, freq, bstxt))
+		bestsuggs = sorted(suggestions, key=lambda x:x[1].score, reverse=True)
+		for bstxt,bss in bestsuggs:
+			logger.debug('bestsugg %6.2f %7u %s' % \
+				(bss.score, self.g.freq(bss.ngd.newtoks()), bstxt))
 		if bestsuggs:
-			bs = bestsuggs[0]
-			best = bs[1][1][0]
-			target_ngram = [b[0] for b in best]
-			yield (target_ngram, [best])
+			bs = bestsuggs[0][1]
+			logger.debug('%s' % (bs,))
+			yield bs
 
 		# TODO: now the trick is to a) associate these together based on target_ngram
 		# to make them persist along with the document
@@ -494,11 +398,10 @@ sugg                             undoubtedly be changed 0
 		changes = list(self.suggest(d, 1))
 		while changes:
 			logger.debug('changes=%s' % changes)
-			changes2 = rsort1(changes)
+			changes2 = rsort(changes, key=lambda x:x.score)
 			logger.debug('changes2=%s' % changes2)
-			original,change = changes2[0]
-			change = change[0]
-			logger.debug('original=%s change=%s' % (original, change))
+			change = [changes2[0].ngd]
+			logger.debug('change=%s' % (change,))
 			d.applyChanges(change)
 			logger.debug('change=%s after applyChanges d=%s' % (change, d))
 			d = Doc(d, self.w)

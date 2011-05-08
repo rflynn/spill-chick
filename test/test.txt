@@ -1,13 +1,35 @@
 # unit tests
 
+# FIXME: (cheese,burger) -> (cheeseburger) is seen as a diff of 18(!)
+# we need a way to associate a changed token with 0+ tokens so that we can accurately
+# calculate inter-token differences (in this case it should be 0)
+a double cheese burger in : a double cheeseburger in
+#--end--
+
+# FIXME: we calculate the diff of eluding -> alluding as 0 because their sounds match
+# but we must differentiate between a phonic change and an actual change that does nothing, i.e.
+# does not change the text at all; we should value the former more highly
+That is pretty much what I was eluding : That is pretty much what I was alluding
+#--end--
+
+# FIXME: this is a shortcoming of the unknown token corrector, a separate but important
+# part of our program that runs before all the other parts.
+# we must do a more thorough job of picking apart unknown tokens, try splitting/merging them with their surroundings
+spillchick : spellcheck
+#--end--
+
+# test whether we're smart enough to prioritize "win or loose" -> "win or lose", which is a good fix
+#In 2005 we win or loose : In 2005 we win or lose
+##--end--
+#their coming to : they're coming to
+##--end--
+
 ######## PASS ############
 bridge the gas : bridge the gap
-eye halve a spelling checker : i have a spelling checker
 i have a spelling chequer : i have a spelling checker
 i am hear : i am here
 I am found of you : I am fond of you
 no, i was write : no, i was right # metallic
-their it is : there it is
 you are waisting your time : you are wasting your time
 # test simple change, but...
 # there are several similar variants that are more popular than the correct answer
@@ -17,16 +39,12 @@ peace of shit : piece of shit
 their is no : there is no
 i no you : i know you
 an IV league school : an IVY league school
-i now know : i now know # no-op
 win or loose : win or lose
 Wet your appetite : Whet your appetite
 RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
-spillchick : spellcheck
-a double cheese burger in : a double cheeseburger in
 Try and fry again : Try and try again
 we have a bid backyard : we have a big backyard
 Summer is almost hear. : Summer is almost here.
-That is pretty much what I was eluding : That is pretty much what I was alluding
 I am very tried : I am very tired
 garden of eating : garden of eden
 garden of eatin : garden of eden

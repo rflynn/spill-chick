@@ -9,6 +9,7 @@ import collections
 import unittest
 import math
 import gram
+from util import TokenDiff,NGramDiff,NGramDiffScore
 
 import logging
 logger = logging.getLogger('spill-chick')
@@ -23,6 +24,11 @@ class Doc:
 		self.words = w				# global tokens
 		#self.docwords = collections.Counter()	# local {token:freq}
 		self.tokenize(f)
+
+		self.sugg = []	# list of suggestions by [line][ngram]suggestions...
+				# suggs are aligned with fixed-size ngrams, so for ngrams size 3
+				# sugg[0][0] refers to ngram of line=0 tokens[0,1,2]
+				# lines that have fewer than ngram len tokens are ignored at this time
 
 	def __str__(self):
 		s = '\n'.join(self.lines)
@@ -79,7 +85,6 @@ class Doc:
 		for ng in self.ngrams(size):
 			ng2 = tuple(t[0] for t in ng)
 			yield (ng, g.freq(ng2))
-
 
 	def ngram_prev(self, ngpos):
 		_,line,index,_ = ngpos
@@ -138,7 +143,6 @@ class Doc:
 			after.append(ng)
 		return before + list(ngpos) + after
 
-
 	@staticmethod
 	def matchCap(x, y):
 		"""
@@ -155,20 +159,28 @@ class Doc:
 			return y.upper()
 		return y
 
-	def applyChange(self, lines, ngpos, mod, off):
+	def applyChange(self, lines, ngd, off):
 		"""
 		given an ngram containing position data, replace corresponding data
 		in lines with 'mod'
 		"""
-		o,l,idx,pos = ngpos
+		d = ngd.diff # ngd.diff=TokenDiff(([(u'cheese', 0, 2, 9), (u'burger', 0, 3, 16)],[(u'cheeseburger', 0, 2, 9)]))
+		mod = d.newtoks()[0] # FIXME: need to deal with multiples!
+		old = d.old
+		# FIXME: ngd.old() can be 
+		print 'ngd.diff=%s' % (ngd.diff,)
+		o,l,idx,pos = old[0]
 		pos += off[l]
-		end = pos + len(o)
+		end = old[-1][3] + len(old[-1][0])
+		print 'o=%s l=%s idx=%s pos=%s end=%s old=%s' % \
+			(o,l,idx,pos,end,old)
 		ow = lines[l][pos:end]
 		if not mod and pos > 0 and lines[l][pos-1] in (' ','\t','\r','\n'):
 			# if we've removed a token and it was preceded by whitespace,
 			# nuke that whitespace as well
 			pos -= 1
 		cap =  Doc.matchCap(ow, mod)
+		print 'cap=%s' % (cap,)
 		lines[l] = lines[l][:pos] + cap + lines[l][end:]
 		off[l] += len(cap) - len(o)
 		# FIXME: over-simplified; consider multi-token change
@@ -186,9 +198,8 @@ class Doc:
 		logger.debug('Doc.demoChanges changes=%s' % (changes,))
 		lines = self.lines[:]
 		off = [0] * len(lines)
-		for change in changes:
-			ngpos, mod = change
-			lines, off = self.applyChange(lines, ngpos, mod, off)
+		for ngd in changes:
+			lines, off = self.applyChange(lines, ngd, off)
 		return lines
 
 	def applyChanges(self, changes):
