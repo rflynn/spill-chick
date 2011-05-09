@@ -53,9 +53,9 @@ class GramsBin:
 			# calculate the single differing token and build an NGramDiff
 			di = 0 if l[0] != ids[0] else 1 if l[1] != ids[1] else 2
 			newtok = (t[di],) + ng[di][1:]
+			damlev = damerau_levenshtein(ng[di][0], t[di])
 			ngd = NGramDiff(ng[:di],
-					TokenDiff(ng[di:di+1], [newtok],
-						  damerau_levenshtein(ng[di][0], t[di])),
+					TokenDiff(ng[di:di+1], [newtok], damlev),
 					ng[di+2:], self, ngfreq, tfreq)
 			like2.append(ngd)
 		like3 = sorted(like2, reverse=True)
