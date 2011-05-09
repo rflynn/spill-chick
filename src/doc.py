@@ -169,19 +169,18 @@ class Doc:
 		mod = d.newtoks()[0] # FIXME: need to deal with multiple tokens
 		old = d.old
 		# FIXME: ngd.old() can be 
-		print 'ngd.diff=%s' % (ngd.diff,)
+		#print 'ngd.diff=%s' % (ngd.diff,)
 		o,l,idx,pos = old[0]
 		pos += off[l]
 		end = old[-1][3] + len(old[-1][0])
-		print 'o=%s l=%s idx=%s pos=%s end=%s old=%s' % \
-			(o,l,idx,pos,end,old)
+		#print 'o=%s l=%s idx=%s pos=%s end=%s old=%s' % (o,l,idx,pos,end,old)
 		ow = lines[l][pos:end]
 		if not mod and pos > 0 and lines[l][pos-1] in (' ','\t','\r','\n'):
 			# if we've removed a token and it was preceded by whitespace,
 			# nuke that whitespace as well
 			pos -= 1
 		cap =  Doc.matchCap(ow, mod)
-		print 'cap=%s' % (cap,)
+		#print 'cap=%s' % (cap,)
 		lines[l] = lines[l][:pos] + cap + lines[l][end:]
 		off[l] += len(cap) - len(o)
 		# FIXME: over-simplified; consider multi-token change
