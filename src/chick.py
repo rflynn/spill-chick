@@ -161,6 +161,7 @@ class Chick:
 		logger.debug('g.freq((they,\',re))=%s' % self.g.freq((u'they',u"'",u're')))
 		"""
 
+	# FIXME: soundsToWords is expensive and should only be run as a last resort
 	def phonGuess(self, toks, minfreq):
 		"""
 		given a list of tokens search for a list of words with similar pronunciation
@@ -205,17 +206,38 @@ class Chick:
 		best = phonpop[0][0]
 		return [[x] for x in best]
 
-	# FIXME: when we generate permutations, we must save the original and tokens must be in a list
-	# this makes dealing with token split/merges handlable...
-	# instead of [x,y,z] -> [x',y',z']
-	# [x,y,z] -> [([x],[x']),([y],[y']),([z],[z'])]
-	# 
-	# instead of [x,y,z] -> [xy,z]
-	# [x,y,z] -> [([x,y],[xy]),([z],[z'])]
-	# 
-	# this would make the doc diffing easier, but would it actually make
-	# calculating the differences easier?
-	# perhaps i should do this, and include an adiff total...
+	"""
+	return a list of ngrampos permutations where each token has been replaced by a word with
+	similar pronunciation, and g.freqs(word) > minfreq
+	"""
+	def permphon(self, ngrampos, minfreq):
+		perms = []
+		for i in range(len(ngrampos)):
+			prefix = ngrampos[:i]
+			suffix = ngrampos[i+1:]
+			tokpos = ngrampos[i]
+			tok = tokpos[0]
+			sounds = self.p.word[tok]
+			if not sounds:
+				continue
+			#logger.debug('tok=%s sounds=%s' % (tok, sounds))
+			for sound in sounds:
+				soundslikes = self.p.phon[sound]
+				#logger.debug('tok=%s soundslikes=%s' % (tok, soundslikes))
+				for soundslike in soundslikes:
+					if len(soundslike) > 1:
+						continue
+					soundslike = soundslike[0]
+					if soundslike == tok:
+						continue
+					#logger.debug('soundslike %s -> %s' % (tok, soundslike))
+					if self.g.freqs(soundslike) <= minfreq:
+						continue
+					newtok = (soundslike,) + tokpos[1:]
+					damlev = damerau_levenshtein(tok, soundslike)
+					td = TokenDiff([tokpos], [newtok], damlev)
+					perms.append(NGramDiff(prefix, td, suffix, self.g, soundalike=True))
+		return perms
 
 	@staticmethod
 	def ngrampos_merge(x, y):
@@ -242,11 +264,14 @@ class Chick:
 		target_ngram = list(target_ngram)
 		part = []
 
+
 		# permutations via token joining
 		# expense: cheap, though rarely useful
 		# TODO: smarter token joining; pre-calculate based on tokens
 		part += list(Chick.permjoin(target_ngram, self.g))
 		#logger.debug('permjoin(%s)=%s' % (target_ngram, part,))
+
+		part += self.permphon(target_ngram, target_freq)
 
 		part += self.g.ngram_like(target_ngram, target_freq)
 
@@ -254,7 +279,7 @@ class Chick:
 
 		# calculate the closest, best ngram in part
 		sim = sorted([NGramDiffScore(ngd, self.p) for ngd in part])
-		for s in sim[:5]:
+		for s in sim[:10]:
 			logger.debug('sim %4.1f %2u %u %6u %6u %s' % \
 				(s.score, s.ediff, s.sl, s.ngd.oldfreq, s.ngd.newfreq, ' '.join(s.ngd.newtoks())))
 
@@ -380,8 +405,8 @@ sugg                             undoubtedly be changed 0
 			suggestions.append(self.ngram_suggest(target_ngram, target_freq, d, max_suggest))
 
 		logger.debug('suggestions=%s' % (suggestions,))
-		# calculate which suggestion makes the most difference
 		suggs = filter(lambda x:x and x[0].ngd.newfreq != x[0].ngd.oldfreq, suggestions)
+		logger.debug('suggs=%s' % (suggs,))
 		bestsuggs = sorted(suggs, key=lambda x: x[0].score, reverse=True)
 		for bs in bestsuggs:
 			for bss in bs:
@@ -404,9 +429,7 @@ sugg                             undoubtedly be changed 0
 		"""
 		d = Doc(txt, self.w)
 		changes = list(self.suggest(d, 1))
-		while changes:
-			logger.debug('changes=%s' % (changes,))
-			ch = changes.pop(0)
+		for ch in changes:
 			logger.debug('ch=%s' % (ch,))
 			change = [ch[0].ngd]
 			logger.debug('change=%s' % (change,))
