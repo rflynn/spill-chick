@@ -89,11 +89,13 @@ class NGramDiffScore:
 		self.score = self.calc_score(ngd, p) if score is None else score
 		if score:
 			self.ediff = score
+			self.sl = 0
 	def calc_score(self, ngd, p):
 		ediff = self.similarity(ngd, p)
 		self.ediff = ediff
-		sl = int(ngd.diff.new and ngd.diff.old and ngd.diff.new[0][0] == ngd.diff.old[0][0])
-		score = ((log(max(1, ngd.newfreq - ngd.oldfreq)) -
+		sl = int(ngd.diff.new and ngd.diff.old and ngd.diff.new[0][0] != ngd.diff.old[0][0])
+		self.sl = sl
+		score = ((log(max(1, ngd.newfreq)) -
 			  (2 + ediff + (sl if ediff else 0))) + (ngd.diff.damlev - ediff))
 		return score
 	def __str__(self):

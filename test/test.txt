@@ -1,10 +1,48 @@
 # unit tests
+#
 
-# FIXME: (cheese,burger) -> (cheeseburger) is seen as a diff of 18(!)
-# we need a way to associate a changed token with 0+ tokens so that we can accurately
-# calculate inter-token differences (in this case it should be 0)
+######## PASS ############
+bridge the gas : bridge the gap
+you are waisting your time : you are wasting your time
+# test simple change, but...
+# there are several similar variants that are more popular than the correct answer
+i new that! : i knew that!
+# test phonetic match and token removal
+their is no : there is no
+i no you : i know you
+an IV league school : an IVY league school
+#
+win or loose : win or lose
+Wet your appetite : Whet your appetite
+Try and fry again : Try and try again
+I am very tried : I am very tired
+garden of eating : garden of eden
+garden of eatin : garden of eden
+# no-ops
+i think so : i think so
+i now know : i now know
+#--end--
+
+######### FAIL
+
+# need phonetic
+Summer is almost hear. : Summer is almost here.
+i have a spelling chequer : i have a spelling checker
+i am hear : i am here
+no, i was write : no, i was right # metallic
+peace of shit : piece of shit
+
+# scoring failures; correct suggestion is in the list but is outranked
+# TODO: in general, we need to stress small changes first, usually ediffs < 2 work,
+# but cannot rule out larger ones completely
+we have a bid backyard : we have a big backyard # 'good backyard'
+their it is : there it is # 'that it is' is too popular
+I am found of you : I am fond of you
 a double cheese burger in : a double cheeseburger in
-##--end--
+
+# FIXME: this ngram is not in our corpus and we don't suggest spelling fixes anymore;
+# perhaps we could Word.correct() as a last-ditch option
+RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
 
 # FIXME: we calculate the diff of eluding -> alluding as 0 because their sounds match
 # but we must differentiate between a phonic change and an actual change that does nothing, i.e.
@@ -24,40 +62,11 @@ a double cheese burger in : a double cheeseburger in
 #their coming to : they're coming to
 ##--end--
 
-######## PASS ############
-bridge the gas : bridge the gap
-i have a spelling chequer : i have a spelling checker
-i am hear : i am here
-I am found of you : I am fond of you
-no, i was write : no, i was right # metallic
-you are waisting your time : you are wasting your time
-# test simple change, but...
-# there are several similar variants that are more popular than the correct answer
-i new that! : i knew that!
-# test phonetic match and token removal
-peace of shit : piece of shit
-their is no : there is no
-i no you : i know you
-an IV league school : an IVY league school
-win or loose : win or lose
-Wet your appetite : Whet your appetite
-RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
-Try and fry again : Try and try again
-we have a bid backyard : we have a big backyard
-Summer is almost hear. : Summer is almost here.
-I am very tried : I am very tired
-garden of eating : garden of eden
-garden of eatin : garden of eden
-# no-ops
-i think so : i think so
-i now know : i now know
-
 # bestsugg   8.74  3 931301 that it is
 # bestsugg   7.95  0  21036 there it is
 # the "correct" solution is a close second because of the overwhelming frequency of the first
 # we need to more heavily weight the improvement of a diff of 0 (phonic difference) over higher
 # frequency.
-their it is : there it is
 
 #--end--
 

@@ -250,12 +250,13 @@ class Chick:
 
 		part += self.g.ngram_like(target_ngram, target_freq)
 
-		logger.debug('part after ngram_like=%s...' % (part[:3],))
+		logger.debug('part after ngram_like=%s...' % (part[:30],))
 
 		# calculate the closest, best ngram in part
 		sim = sorted([NGramDiffScore(ngd, self.p) for ngd in part])
-		for s in sim[:10]:
-			logger.debug('sim %s' % (s,))
+		for s in sim[:5]:
+			logger.debug('sim %4.1f %2u %u %6u %6u %s' % \
+				(s.score, s.ediff, s.sl, s.ngd.oldfreq, s.ngd.newfreq, ' '.join(s.ngd.newtoks())))
 
 		best = list(takewhile(lambda s:s.score > 0, sim))[:max_suggest]
 		for b in best:
@@ -312,10 +313,10 @@ class Chick:
 				logger.debug('real %s %s' % (rstr, realdiff[rstr]))
 
 		# sort the merged suggestions based on their combined score
-		rdbest = sorted(realdiff.items(), key=lambda x:x[1].score, reverse=True)
+		rdbest = sorted(realdiff.values(), key=lambda x:x.score, reverse=True)
 
-		for rstr,ngds in rdbest:
-			logger.debug('best %s %s' % (rstr, ngds))
+		for ngds in rdbest:
+			logger.debug('best %s' % (ngds,))
 
 		return rdbest
 
@@ -328,8 +329,11 @@ class Chick:
 		d = Doc(txt, self.w)
 		logger.debug('doc=%s' % d)
 
+		# FIXME: i don't think i need this anymore, except perhaps as a last-ditch option
+		"""
 		# start out like a regular spellchecker
 		# address unknown tokens (ngram size 1) first
+		# TODO: incorporate this into part just like ngram_like does so they can be evaluated in context; STOP RETURNING THESE ALONE!
 		ut = list(d.unknownToks())
 		logger.debug('unknownToks=%s' % ut)
 		utChanges = [(u, (self.w.correct(u[0]), u[1], u[2], u[3])) for u in ut]
@@ -339,7 +343,8 @@ class Chick:
 			td = TokenDiff([old], [new], damerau_levenshtein(old[0], new[0]))
 			ngd = NGramDiff([], td, [], self.g)
 			ngds = NGramDiffScore(ngd, None, 1)
-			yield ngds
+			yield [ngds]
+		"""
 
 		"""
 		now the hard part.
@@ -372,17 +377,19 @@ sugg                             undoubtedly be changed 0
 		suggestions = []
 		while least_common:
 			target_ngram,target_freq = least_common.pop(0)
-			suggestions += self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
+			suggestions.append(self.ngram_suggest(target_ngram, target_freq, d, max_suggest))
 
 		logger.debug('suggestions=%s' % (suggestions,))
 		# calculate which suggestion makes the most difference
-		bestsuggs = sorted(suggestions, key=lambda x:x[1].score, reverse=True)
-		for bstxt,bss in bestsuggs:
-			logger.debug('bestsugg %6.2f %2u %2u %7u %s' % \
-				(bss.score, bss.ediff, bss.ngd.diff.damlev, bss.ngd.newfreq, bstxt))
-		if bestsuggs:
-			bs = bestsuggs[0][1]
-			logger.debug('%s' % (bs,))
+		suggs = filter(lambda x:x and x[0].ngd.newfreq != x[0].ngd.oldfreq, suggestions)
+		bestsuggs = sorted(suggs, key=lambda x: x[0].score, reverse=True)
+		for bs in bestsuggs:
+			for bss in bs:
+				logger.debug('bestsugg %6.2f %2u %2u %7u %s' % \
+					(bss.score, bss.ediff, bss.ngd.diff.damlev, bss.ngd.newfreq, ' '.join(bss.ngd.newtoks())))
+
+		for bs in bestsuggs:
+			logger.debug('> bs=%s' % (bs,))
 			yield bs
 
 		# TODO: now the trick is to a) associate these together based on target_ngram
@@ -398,10 +405,10 @@ sugg                             undoubtedly be changed 0
 		d = Doc(txt, self.w)
 		changes = list(self.suggest(d, 1))
 		while changes:
-			logger.debug('changes=%s' % changes)
-			changes2 = rsort(changes, key=lambda x:x.score)
-			logger.debug('changes2=%s' % changes2)
-			change = [changes2[0].ngd]
+			logger.debug('changes=%s' % (changes,))
+			ch = changes.pop(0)
+			logger.debug('ch=%s' % (ch,))
+			change = [ch[0].ngd]
 			logger.debug('change=%s' % (change,))
 			d.applyChanges(change)
 			logger.debug('change=%s after applyChanges d=%s' % (change, d))
