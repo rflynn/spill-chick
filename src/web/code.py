@@ -58,7 +58,7 @@ class check:
 				replacements = session.get('replacements')
 				if replacement_index <= len(replacements):
 					replacement = replacements[replacement_index-1]
-					d.applyChanges(replacement)
+					d.applyChanges([replacement])
 					text = str(d)
 					lines = d.lines
 					logger.debug('after replacement lines=%s' % (lines,))
@@ -79,17 +79,23 @@ class check:
 			if not suggestions:
 				target,suggs,sugg2 = None,[],[]
 			else:
+				# calculate offsets based on line length so we can highlight target substring in <texarea>
 				off = [len(l)+1 for l in lines]
 				lineoff = [0]+[sum(off[:i]) for i in range(1,len(off)+1)]
-				for target,suggs in suggestions:
-					replacements += suggs
-					sugg2 += [
-						(#' '.join(x[0][0] for x in s), # string being replaced
-						' '.join(x[1] for x in s), # replacement
-						lineoff[s[0][0][1]] + s[0][0][3], # beginning index
-						lineoff[s[-1][0][1]] + s[-1][0][3] + len(s[-1][0][0])) # length of replacement
-							for s in suggs if s]
-
+				changes = suggestions[0]
+				target = changes[0].ngd.oldtoks()
+				for ch in changes:
+					ngd = ch.ngd
+					replacements.append(ngd)
+					o = ngd.old()
+					r = ngd.new()
+					linestart = o[0][1]
+					lineend = o[-1][1]
+					start = o[0][3]
+					end = o[-1][3] + len(o[-1][0])
+					sugg2.append((' '.join(ngd.newtoks()),
+						      lineoff[linestart] + start,
+						      lineoff[lineend] + end))
 			session['target'] = target
 			session['replacements'] = replacements
 
