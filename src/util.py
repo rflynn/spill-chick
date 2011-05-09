@@ -56,12 +56,13 @@ class NGramDiff:
 	                 \     /
 		          `-O-'
 	"""
-	def __init__(self, prefix, diff, suffix, g, oldfreq=None, newfreq=None):
+	def __init__(self, prefix, diff, suffix, g, oldfreq=None, newfreq=None, soundalike=False):
 		self.prefix = list(prefix)
 		self.diff = diff
 		self.suffix = list(suffix)
 		self.oldfreq = g.freq(self.oldtoks()) if oldfreq is None else oldfreq
 		self.newfreq = g.freq(self.newtoks()) if newfreq is None else newfreq
+		self.soundalike = soundalike
 	def old(self): return self.prefix + self.diff.old + self.suffix
 	def new(self): return self.prefix + self.diff.new + self.suffix
 	def oldtoks(self): return [t[0] for t in self.old()]
@@ -79,8 +80,8 @@ class NGramDiff:
 
 class NGramDiffScore:
 	# based on our logarithmic scoring below
-	DECENT_SCORE = 5.0
-	GOOD_SCORE = 10.0
+	DECENT_SCORE = 3.0
+	GOOD_SCORE = 5.0
 	"""
 	decorate an NGramDiff obj with scoring
 	"""
@@ -95,8 +96,11 @@ class NGramDiffScore:
 		self.ediff = ediff
 		sl = int(ngd.diff.new and ngd.diff.old and ngd.diff.new[0][0] != ngd.diff.old[0][0])
 		self.sl = sl
-		score = ((log(max(1, ngd.newfreq)) -
-			  (2 + ediff + (sl if ediff else 0))) + (ngd.diff.damlev - ediff))
+		if ngd.newfreq == 0:
+			score = -float('inf')
+		else:
+			score = ((log(max(1, ngd.newfreq)) -
+				 (2 + ediff + (sl if ediff else 0))) + (ngd.diff.damlev - ediff))
 		return score
 	def __str__(self):
 		return 'NGramDiffScore(score=%4.1f ngd=%s)' % (self.score, self.ngd)
@@ -129,6 +133,8 @@ class NGramDiffScore:
 		alternatives for a given token within a document; we need to consider
 		the wide range of possible errors that may have been made
 		"""
+		if ngd.soundalike:
+			return 0
 		x = ' '.join(ngd.diff.oldtoks())
 		y = ' '.join(ngd.diff.newtoks())
 		# tokens identical
