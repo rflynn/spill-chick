@@ -9,7 +9,7 @@ import collections
 import unittest
 import math
 import gram
-from util import TokenDiff,NGramDiff,NGramDiffScore
+from ngramdiff import TokenDiff,NGramDiff,NGramDiffScore
 
 import logging
 logger = logging.getLogger('spill-chick')

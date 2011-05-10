@@ -6,7 +6,7 @@
 """
 Word/grammar checking algorithm
 
-Phon ✕ Word ✕ NGram ✕ Doc ✕ similarity
+Phon ✕ Word ✕ NGramDiff ✕ Doc
 
 Facts
 	* the corpus is not perfect. it contains errors.
@@ -28,6 +28,7 @@ TODO:
 """
 
 from util import *
+from ngramdiff import TokenDiff,NGramDiff,NGramDiffScore
 
 import logging
 
