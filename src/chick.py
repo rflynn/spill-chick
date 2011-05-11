@@ -399,6 +399,9 @@ sugg                             undoubtedly be changed 0
 		logger.debug('least_common=%s' % least_common[:20])
 		least_common = list(dropwhile(lambda x: x[0] in skip, least_common))
 
+		# FIXME: limit to reduce work
+		least_common = least_common[:20]
+
 		# gather all suggestions for all least_common ngrams
 		suggestions = []
 		for target_ngram,target_freq in least_common:
