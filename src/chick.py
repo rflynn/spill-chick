@@ -401,8 +401,7 @@ sugg                             undoubtedly be changed 0
 
 		# gather all suggestions for all least_common ngrams
 		suggestions = []
-		while least_common:
-			target_ngram,target_freq = least_common.pop(0)
+		for target_ngram,target_freq in least_common:
 			suggestions.append(self.ngram_suggest(target_ngram, target_freq, d, max_suggest))
 
 		logger.debug('suggestions=%s' % (suggestions,))
