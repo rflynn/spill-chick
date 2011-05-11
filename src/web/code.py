@@ -34,7 +34,7 @@ urls = ( '/.*', 'check' )
 
 app = web.application(urls, globals())
 session = web.session.Session(app, web.session.DiskStore(abspath('session')),
-		initializer={'target':None, 'skip':[], 'replacements':[]})
+		initializer={'target':None, 'skip':[], 'replacements':[], 'suggestions':[]})
 render = web.template.render(abspath('templates/'), base='base', globals=globals(), cache=False)
 application = app.wsgifunc()
 chick = Chick()
@@ -64,6 +64,7 @@ class check:
 					logger.debug('after replacement lines=%s' % (lines,))
 		elif act == 'Skip to next...':
 			session['skip'].append(session['target'])
+			session['suggestions'].pop(0)
 		elif act == 'Done':
 			# nuke target, replacements, skip, etc.
 			session.kill()
@@ -74,8 +75,10 @@ class check:
 		replacements = []
 
 		if act and act != 'Done':
-			logger.debug('suggest(lines=%s)' % (lines,))
-			suggestions = list(chick.suggest(lines, 5, session['skip']))
+			suggestions = session['suggestions']
+			if not suggestions:
+				logger.debug('suggest(lines=%s)' % (lines,))
+				suggestions = list(chick.suggest(lines, 5, session['skip']))
 			if not suggestions:
 				target,suggs,sugg2 = None,[],[]
 			else:
@@ -98,6 +101,7 @@ class check:
 						      lineoff[lineend] + end))
 			session['target'] = target
 			session['replacements'] = replacements
+			session['suggestions'] = suggestions
 
 		elapsed = round(time() - start_time, 2)
 		return render.check(text, sugg2, lines, elapsed, suggestions)
