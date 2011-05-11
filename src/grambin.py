@@ -57,7 +57,7 @@ class GramsBin:
 			damlev = damerau_levenshtein(ng[di][0], t[di])
 			ngd = NGramDiff(ng[:di],
 					TokenDiff(ng[di:di+1], [newtok], damlev),
-					ng[di+2:], self, ngfreq, tfreq)
+					ng[di+1:], self, ngfreq, tfreq)
 			like2.append(ngd)
 		like3 = sorted(like2, reverse=True)
 		return like2
