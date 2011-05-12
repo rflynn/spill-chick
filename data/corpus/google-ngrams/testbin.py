@@ -62,6 +62,8 @@ Test = [
 	'spell check',
 	'spillchick',
 	'spellcheck',
+	'of the art',
+	'the - art',
 ]
 for s in Test:
 	t = s.lower().split()
