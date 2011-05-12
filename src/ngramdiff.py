@@ -88,6 +88,11 @@ class NGramDiffScore:
 			score = ((log(max(1, ngd.newfreq)) -
 				 (2 + ediff + (not self.sl))) + (ngd.diff.damlev - ediff))
 		return score
+	def improve_pct(self):
+		"""How much of an improvement is the new from the old?"""
+		if self.ngd.oldfreq == 0:
+			return float('inf')
+		return self.ngd.newfreq / self.ngd.oldfreq
 	def __str__(self):
 		return 'NGramDiffScore(score=%4.1f ngd=%s)' % (self.score, self.ngd)
 	def __repr__(self):
