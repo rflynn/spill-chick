@@ -62,6 +62,7 @@ class check:
 					text = str(d)
 					lines = d.lines
 					logger.debug('after replacement lines=%s' % (lines,))
+				session['suggestions'].pop(0)
 		elif act == 'Skip to next...':
 			session['skip'].append(session['target'])
 			session['suggestions'].pop(0)
