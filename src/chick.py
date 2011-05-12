@@ -416,7 +416,10 @@ sugg                             undoubtedly be changed 0
 		logger.debug('suggestions=%s' % (suggestions,))
 		suggs = filter(lambda x:x and x[0].ngd.newfreq != x[0].ngd.oldfreq, suggestions)
 		logger.debug('suggs=%s' % (suggs,))
-		bestsuggs = sorted(suggs, key=lambda x: x[0].score, reverse=True)
+		# sort suggestions by their score, highest first
+		bestsuggs = rsort(suggs, key=lambda x: x[0].score)
+		# sort suggestions by how much
+		bestsuggs = rsort(bestsuggs, key=lambda x: x[0].improve_pct())
 		for bs in bestsuggs:
 			for bss in bs:
 				logger.debug('bestsugg %6.2f %2u %2u %7u %6.0f%% %s' % \
