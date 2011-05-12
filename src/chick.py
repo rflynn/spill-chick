@@ -419,8 +419,9 @@ sugg                             undoubtedly be changed 0
 		bestsuggs = sorted(suggs, key=lambda x: x[0].score, reverse=True)
 		for bs in bestsuggs:
 			for bss in bs:
-				logger.debug('bestsugg %6.2f %2u %2u %7u %s' % \
-					(bss.score, bss.ediff, bss.ngd.diff.damlev, bss.ngd.newfreq, ' '.join(bss.ngd.newtoks())))
+				logger.debug('bestsugg %6.2f %2u %2u %7u %6.0f%% %s' % \
+					(bss.score, bss.ediff, bss.ngd.diff.damlev,
+					 bss.ngd.newfreq, bss.improve_pct(), ' '.join(bss.ngd.newtoks())))
 
 		for bs in bestsuggs:
 			logger.debug('> bs=%s' % (bs,))
