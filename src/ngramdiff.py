@@ -73,20 +73,20 @@ class NGramDiffScore:
 	"""
 	def __init__(self, ngd, p, score=None):
 		self.ngd = ngd
-		self.score = self.calc_score(ngd, p) if score is None else score
+		self.sl = ngd.diff.new and ngd.diff.old and ngd.diff.new[0][0][0] == ngd.diff.old[0][0][0]
 		if score:
+			self.score = score
 			self.ediff = score
-			self.sl = 0
+		else:
+			self.score = self.calc_score(ngd, p)
 	def calc_score(self, ngd, p):
 		ediff = self.similarity(ngd, p)
 		self.ediff = ediff
-		sl = int(ngd.diff.new and ngd.diff.old and ngd.diff.new[0][0] != ngd.diff.old[0][0])
-		self.sl = sl
 		if ngd.newfreq == 0:
 			score = -float('inf')
 		else:
 			score = ((log(max(1, ngd.newfreq)) -
-				 (2 + ediff + (sl if ediff else 0))) + (ngd.diff.damlev - ediff))
+				 (2 + ediff + (not self.sl))) + (ngd.diff.damlev - ediff))
 		return score
 	def __str__(self):
 		return 'NGramDiffScore(score=%4.1f ngd=%s)' % (self.score, self.ngd)
