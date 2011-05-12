@@ -400,6 +400,10 @@ sugg                             undoubtedly be changed 0
 		least_common = sort1(d.ngramfreq(self.g, ngsize))
 		logger.debug('least_common=%s' % least_common[:20])
 		least_common = list(dropwhile(lambda x: x[0] in skip, least_common))
+		# filter ngrams containing numeric tokens, they generate too many poor suggestions
+		least_common = list(filter(
+					lambda ng: not any(re.match('^\d+$', n[0][0], re.U) for n in ng[0]),
+					least_common))
 
 		# FIXME: limit to reduce work
 		least_common = least_common[:max(20, len(least_common)/2)]
