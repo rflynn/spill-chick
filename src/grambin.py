@@ -53,6 +53,10 @@ class GramsBin:
 			t,tfreq = tuple(map(self.ng.id2word, l[:3])), l[3]
 			# calculate the single differing token and build an NGramDiff
 			di = 0 if l[0] != ids[0] else 1 if l[1] != ids[1] else 2
+			# do not bother with words that are of grossly different
+			# length than our target
+			if abs(len(t[di]) - len(ng[di][0])) > 3:
+				continue
 			newtok = (t[di],) + ng[di][1:]
 			damlev = damerau_levenshtein(ng[di][0], t[di])
 			ngd = NGramDiff(ng[:di],
