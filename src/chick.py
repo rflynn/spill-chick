@@ -244,17 +244,20 @@ class Chick:
 	def ngrampos_merge(x, y):
 		return (x[0]+y[0], x[1], x[2], x[3])
 
-	@staticmethod
-	def permjoin(l, g):
+	def permjoin(self, l, minfreq):
 		"""
 		given a list of strings, produce permutations by joining two tokens together
 		example [a,b,c,d] -> [[ab,c,d],[a,bc,d],[a,b,cd]
 		"""
-        	if len(l) > 1:
-                	for i in range(len(l)-1):
-                        	yield NGramDiff(l[:i],
-						TokenDiff(l[i:i+2], [Chick.ngrampos_merge(l[i],l[i+1])], 1),
-						l[i+2:], g)
+		perms = []
+		if len(l) > 1:
+			for i in range(len(l)-1):
+				joined = Chick.ngrampos_merge(l[i],l[i+1])
+				if self.g.freqs(joined[0]) > minfreq:
+					td = TokenDiff(l[i:i+2], [joined], 1)
+					ngd = NGramDiff(l[:i], td, l[i+2:], self.g)
+					perms.append(ngd)
+		return perms
 
 	def do_suggest(self, target_ngram, target_freq, ctx, d, max_suggest=5):
 		"""
@@ -265,11 +268,10 @@ class Chick:
 		target_ngram = list(target_ngram)
 		part = []
 
-
 		# permutations via token joining
 		# expense: cheap, though rarely useful
 		# TODO: smarter token joining; pre-calculate based on tokens
-		part += list(Chick.permjoin(target_ngram, self.g))
+		part += self.permjoin(target_ngram, target_freq)
 		#logger.debug('permjoin(%s)=%s' % (target_ngram, part,))
 
 		part += self.permphon(target_ngram, target_freq)
