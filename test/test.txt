@@ -18,27 +18,30 @@ Try and fry again : Try and try again
 I am very tried : I am very tired
 garden of eating : garden of eden
 garden of eatin : garden of eden
+I am found of you : I am fond of you
+their it is : there it is
 # no-ops
 i think so : i think so
 i now know : i now know
-#--end--
-
-######### FAIL
-
-# need phonetic
+# phonetic
 Summer is almost hear. : Summer is almost here.
-i have a spelling chequer : i have a spelling checker
 i am hear : i am here
 no, i was write : no, i was right # metallic
 peace of shit : piece of shit
-
-# scoring failures; correct suggestion is in the list but is outranked
-# TODO: in general, we need to stress small changes first, usually ediffs < 2 work,
-# but cannot rule out larger ones completely
-we have a bid backyard : we have a big backyard # 'good backyard'
-their it is : there it is # 'that it is' is too popular
-I am found of you : I am fond of you
+# 
+we have a bid backyard : we have a big backyard
 a double cheese burger in : a double cheeseburger in
+i have a spelling chequer : i have a spelling checker
+#--end--
+
+# avoid making suggestions for numbers
+# perhaps transpositions, but in most cases we don't want to replace whole numbers...
+for over 35 years we bridge the gas : for over 35 years we bridge the gap
+
+######### FAIL
+
+# FIXME: can't fix 4-token idiom
+state-of-the-are : state-of-the-art
 
 # FIXME: this ngram is not in our corpus and we don't suggest spelling fixes anymore;
 # perhaps we could Word.correct() as a last-ditch option
@@ -269,6 +272,8 @@ That it. : That's it.
 # splits
 # we *can* tease this out, but the cost of doing so is just too high right now. in the future perhps we can fall back to more expensive methods when appropriate
 ifit'snotpurethecompilercan'toptimizeitlikeyouwant : if it's not pure the compiler can't optimize it like you want
+
+I've been doing this for a very long time and I think I have have encountered each of the bugs listed in this list. : I've been doing this for a very long time and I think I have encountered each of the bugs listed in this list.
 
 Software's inherit ability to adapt is part of what drives this differentiating factor. : Software's inherent ability to adapt is part of what drives this differentiating factor.
 
