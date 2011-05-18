@@ -31,7 +31,10 @@ class Doc:
 				# lines that have fewer than ngram len tokens are ignored at this time
 
 	def __str__(self):
-		s = '\n'.join(self.lines)
+		return unicode(self).encode('utf-8')
+
+	def __unicode__(self):
+		s = unicode('\n'.join(self.lines))
 		return s
 
 	def __repr__(self):
