@@ -22,8 +22,6 @@ class Phon:
 			with open(dictpath, 'wb') as dst:
 				with gzip.open(dictpath + '.gz', 'rb') as src:
 					dst.write(src.read())
-		redigits = re.compile('\d+')
-		multichar = re.compile('(\S)(\S+)')
 		# TODO: loading this ~130,000 line dictionary in python represents the majority
 		# of the program's initialization time. move it over to C.
 		with open(dictpath, 'r') as f:
@@ -64,7 +62,7 @@ class Phon:
 					REVUE  R I V Y U
 					REVIEW R I V Y U
 				"""
-				phon = re.sub(multichar, '\\1', phon)
+				phon = re.sub('(\S)(\S+)', r'\1', phon)
 				# now merge leading vowels except 'o' and 'u'
 				if len(phon) > 1:
 					phon = re.sub('^[aei]', '*', phon)
