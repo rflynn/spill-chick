@@ -16,17 +16,17 @@ class Phon:
 		self.phon = collections.defaultdict(list)
 		self.load(g)
 	def load(self, g):
-		path ='/home/pizza/proj/spill-chick/data/cmudict/cmudict.0.7a'
+		dictpath ='/home/pizza/proj/spill-chick/data/cmudict/cmudict.0.7a'
 		# extract file if necessary
-		if not os.path.exists(path):
-			with open(path, 'wb') as dst:
-				with gzip.open(path+'.gz', 'rb') as src:
+		if not os.path.exists(dictpath):
+			with open(dictpath, 'wb') as dst:
+				with gzip.open(dictpath + '.gz', 'rb') as src:
 					dst.write(src.read())
 		redigits = re.compile('\d+')
 		multichar = re.compile('(\S)(\S+)')
 		# TODO: loading this ~130,000 line dictionary in python represents the majority
 		# of the program's initialization time. move it over to C.
-		with open(path, 'r') as f:
+		with open(dictpath, 'r') as f:
 			for line in f:
 				if line.startswith(';;;'):
 					continue
