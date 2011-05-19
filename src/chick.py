@@ -278,11 +278,11 @@ class Chick:
 
 		part += self.g.ngram_like(target_ngram, target_freq)
 
-		logger.debug('part after ngram_like=%s...' % (part[:30],))
+		logger.debug('part after ngram_like=(%u)%s...' % (len(part), part[:5],))
 
 		# calculate the closest, best ngram in part
 		sim = sorted([NGramDiffScore(ngd, self.p) for ngd in part])
-		for s in sim[:10]:
+		for s in sim[:25]:
 			logger.debug('sim %4.1f %2u %u %6u %6u %s' % \
 				(s.score, s.ediff, s.sl, s.ngd.oldfreq, s.ngd.newfreq, ' '.join(s.ngd.newtoks())))
 
@@ -323,7 +323,7 @@ class Chick:
 
 		"""
 		previously we leaned heavily on ngram frequencies and the sums of them for
-		evaluating suggestios in context.
+		evaluating suggestions in context.
 		instead, we will focus specifically on making the smallest changes which have the
 		largest improvements, and in trying to normalize a document, i.e.
 		"filling in the gaps" of as many 0-freq ngrams as possible.
@@ -343,6 +343,16 @@ class Chick:
 		# sort the merged suggestions based on their combined score
 		rdbest = sorted(realdiff.values(), key=lambda x:x.score, reverse=True)
 
+		# finally, allow frequency to overcome small differences in score, but only
+		# for scores that are within 1 to begin with.
+		# if we account for frequency too much the common language idioms always crush
+		# valid but less common phrases; if we don't account for frequency at all we often
+		# recommend very similar but uncommon and weird phrases. this attempts to strike a balance.
+		rdbest.sort(lambda x,y:
+			y.score - x.score if abs(x.score - y.score) > 1	\
+			else	(y.score + int(log(y.ngd.newfreq))) -	\
+				(x.score + int(log(x.ngd.newfreq))))
+
 		for ngds in rdbest:
 			logger.debug('best %s' % (ngds,))
 
@@ -358,9 +368,6 @@ class Chick:
 		logger.debug('doc=%s' % d)
 
 		"""
-
-		"""
-		now the hard part.
 		locate uncommon n-gram sequences which may indicate grammatical errors
 		see if we can determine better replacements for them given their context
 		"""
@@ -368,7 +375,7 @@ class Chick:
 		# order n-grams by unpopularity
 		ngsize = min(3, d.totalTokens())
 		logger.debug('ngsize=%s d.totalTokens()=%s' % (ngsize, d.totalTokens()))
-		logger.debug('ngram(1) freq=%s' % list(d.ngramfreq(self.g,1)))
+		logger.debug('ngram(1) freq=%s' % list(d.ngramfreqctx(self.g,1)))
 
 		# locate the least-common ngrams
 		# TODO: in some cases an ngram is unpopular, but overlapping ngrams on either side
@@ -382,12 +389,14 @@ sugg                       would undoubtedly be 3111
 sugg                             undoubtedly be changed 0
 		"""
 
-		least_common = sort1(d.ngramfreq(self.g, ngsize))
+		least_common = sort1(d.ngramfreqctx(self.g, ngsize))
 		logger.debug('least_common=%s' % least_common[:20])
+		# remove any ngrams present in 'skip'
 		least_common = list(dropwhile(lambda x: x[0] in skip, least_common))
-		# filter ngrams containing numeric tokens, they generate too many poor suggestions
+		# filter ngrams containing numeric tokens or periods, they generate too many poor suggestions
 		least_common = list(filter(
-					lambda ng: not any(re.match('^\d+$', n[0][0], re.U) for n in ng[0]),
+					lambda ng: not any(re.match('^(?:\d+|\.)$', n[0][0], re.U)
+							for n in ng[0]),
 					least_common))
 
 		# FIXME: limit to reduce work
@@ -420,8 +429,25 @@ sugg                             undoubtedly be changed 0
 		logger.debug('suggs=%s' % (suggs,))
 		# sort suggestions by their score, highest first
 		bestsuggs = rsort(suggs, key=lambda x: x[0].score)
-		# sort suggestions by how much
+		# by total new frequency...
+		bestsuggs = rsort(bestsuggs, key=lambda x: x[0].ngd.newfreq)
+		# then by improvement pct. for infinite improvements this results in
+		# the most frequent recommendation coming to the top
 		bestsuggs = rsort(bestsuggs, key=lambda x: x[0].improve_pct())
+
+		# finally, allow frequency to overcome small differences in score, but only
+		# for scores that are within 1 to begin with.
+		# if we account for frequency too much the common language idioms always crush
+		# valid but less common phrases; if we don't account for frequency at all we often
+		# recommend very similar but uncommon and weird phrases. this attempts to strike a balance.
+		"""
+		bestsuggs.sort(lambda x,y:
+			x[0].score - y[0].score if abs(x[0].score - y[0].score) > 1 \
+			else \
+				(y[0].score + int(log(y[0].ngd.newfreq))) - \
+				(x[0].score + int(log(x[0].ngd.newfreq))))
+		"""
+
 		for bs in bestsuggs:
 			for bss in bs:
 				logger.debug('bestsugg %6.2f %2u %2u %7u %6.0f%% %s' % \
