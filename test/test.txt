@@ -1,6 +1,29 @@
 # unit tests
 #
 
+# FIXME: we don't handle apostrophes correctly
+Even so, I'm open minded. : Even so, I'm open minded.
+that's and advantage. : that's an advantage.
+
+# FAIL -
+# FIXME: can't handle 2-word idioms nor "sound out" sentences
+funky farm : funny farm # wrong first token not handled
+untied stats : united states # tricky -- both tokens wrong, no extra context
+# issue: two-token not handled
+Windows PX : Windows XP
+a miss steak : a mistake
+dry rum : dry run
+# issue: punctuation
+hell there. how are you? : hello there. how are you? # needs punctuation
+bag apple : big apple
+beg apple : big apple
+
+# FIXME: can't fix 4-token idiom
+state-of-the-are : state-of-the-art
+
+#--end--
+
+
 ######## PASS ############
 bridge the gas : bridge the gap
 you are waisting your time : you are wasting your time
@@ -19,6 +42,7 @@ I am very tried : I am very tired
 garden of eating : garden of eden
 garden of eatin : garden of eden
 I am found of you : I am fond of you
+their is : there is
 their it is : there it is
 # no-ops
 i think so : i think so
@@ -28,24 +52,32 @@ Summer is almost hear. : Summer is almost here.
 i am hear : i am here
 no, i was write : no, i was right # metallic
 peace of shit : piece of shit
-# 
+#
 we have a bid backyard : we have a big backyard
 a double cheese burger in : a double cheeseburger in
 i have a spelling chequer : i have a spelling checker
-#--end--
+
+we'll touch bass : we'll touch base
+i didn't no : i didn't know
+# issue: slang
+nope, i was write : nope, i was right # metallic # slang, doesn't know 'nope'
+bridge the gap. bridge the gas. : bridge the gap. bridge the gap. # multi-sentence problem; ignores "gas."
 
 # avoid making suggestions for numbers
 # perhaps transpositions, but in most cases we don't want to replace whole numbers...
 for over 35 years we bridge the gas : for over 35 years we bridge the gap
 
+That's not a every impressive claim to make. : That's not a very impressive claim to make.
+Long Island, New York, state-of-the-are facility : Long Island, New York, state-of-the-art facility
+That is pretty much what I was eluding : That is pretty much what I was alluding
+
+#--end--
+
 ######### FAIL
 
-# FIXME: can't fix 4-token idiom
-state-of-the-are : state-of-the-art
+While the post author claims that using a SQL backend doesn't make much sense, according to the fossil web page (http://fossil-scm.org/) that's and advantage. : While the post author claims that using a SQL backend doesn't make much sense, according to the fossil web page (http://fossil-scm.org/) that's an advantage.
 
-# FIXME: this ngram is not in our corpus and we don't suggest spelling fixes anymore;
-# perhaps we could Word.correct() as a last-ditch option
-RASCIST ACTIVITY DETECTED : RACIST ACTIVITY DETECTED
+#--end--
 
 # FIXME: we calculate the diff of eluding -> alluding as 0 because their sounds match
 # but we must differentiate between a phonic change and an actual change that does nothing, i.e.
@@ -83,25 +115,6 @@ I would have won if I had won. : I would have one if I had won.
 #I would have one too if I had one too.
 #I would have won too if I had won one.
 
-# FAIL - 
-funky farm : funny farm # wrong first token not handled
-untied stats : united states # tricky -- both tokens wrong, no extra context
-# issue: two-token not handled
-their is : there is
-Windows PX : Windows XP 
-a miss steak : a mistake
-dry rum : dry run
-# issue: punctuation
-hell there. how are you? : hello there. how are you? # needs punctuation
-we'll touch bass : we'll touch base
-i didn't no : i didn't know
-# issue: slang
-nope, i was write : nope, i was right # metallic # slang, doesn't know 'nope'
-bridge the gap. bridge the gas. : bridge the gap. bridge the gap. # multi-sentence problem; ignores "gas."
-# issue: unknown
-get what you payed for : get what you paid for
-#--end--
-
 # FIXME: these take ages and always fail
 doe sit use machien learning : does it use machine learning
 dose it use machien learning : does it use machine learning
@@ -128,7 +141,7 @@ someone otther than yourself : someone other than yourself
 
 
 ########## BOTCHED IDIOMS
-# 
+#
 Coming down the pipe : Coming down the pike
 Through the ringer : Through the wringer
 touch basis : touch bases
@@ -149,6 +162,8 @@ pushing up days : pushing up daisies
 ####### SORT OF WORKS ############
 # this would benefit if we weighted consonant changes more heavily than vowel changes
 spill chick : spell check # actually ok... ['still thick','spell check',...]
+# issue: almost works. we get 'pay' instead of 'paid'. 'paid' is second.
+get what you payed for : get what you paid for
 ##--end--
 
 
@@ -205,7 +220,7 @@ Insturctions: : Instructions:
 descently well : decently well
 I'm leary of it : I'm leery of it
 a pthon library : a python library
-#santimoniousness : sanctimoniousness 
+#santimoniousness : sanctimoniousness
 integeter division : integer division
 
 # transpositions resulting in words
