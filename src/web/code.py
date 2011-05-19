@@ -47,11 +47,13 @@ class check:
 
 	def POST(self):
 		start_time = time()
-		text = web.input().get('text', '').decode('utf8')
+		text = unicode(web.input().get('text', ''))
 		lines = text.split('\r\n')
 
 		act = web.input().get('act', '')
 		if act == 'Replace':
+			# FIXME: if replacement takes place, update location/offsets
+			# of all remaining session['suggestions']
 			replacement_index = int(web.input().get('replacement_index', '0'))
 			if replacement_index:
 				d = Doc(lines, chick.w)
