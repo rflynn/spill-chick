@@ -89,6 +89,21 @@ class Doc:
 			ng2 = tuple(t[0] for t in ng)
 			yield (ng, g.freq(ng2))
 
+	def ngramfreqctx(self, g, size):
+		"""
+		return each ngram in document, and the sum of the frequencies
+		of all overlapping ngrams
+		"""
+		for toks in self.tok:
+			if not toks:
+				continue
+			ngs = [tuple(t[0] for t in toks[i:i+size])
+				for i in range(max(1, len(toks)-size+1))]
+			for i in range(len(ngs)):
+				ctx = ngs[max(0,i-size-1):i+size]
+				freq = sum(map(g.freq,ctx)) / len(ctx)
+				yield (toks[i:i+size], freq)
+				
 	def ngram_prev(self, ngpos):
 		_,line,index,_ = ngpos
 		if index == 0:
