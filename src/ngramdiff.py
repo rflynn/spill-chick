@@ -85,8 +85,8 @@ class NGramDiffScore:
 		if ngd.newfreq == 0:
 			score = -float('inf')
 		else:
-			score = ((log(max(1, ngd.newfreq)) -
-				 (2 + ediff + (not self.sl))) + (ngd.diff.damlev - ediff))
+			# weigh edit distance much more heavily than frequency
+			score = 10 - (2 + ediff + (not self.sl))
 		return score
 	def improve_pct(self):
 		"""How much of an improvement is the new from the old?"""
