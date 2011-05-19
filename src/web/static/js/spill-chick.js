@@ -1,8 +1,4 @@
 
-var isOpera = navigator.userAgent.indexOf("Opera") > -1;
-var isIE = navigator.userAgent.indexOf("MSIE") > 1 && !isOpera;
-var isMoz = navigator.userAgent.indexOf("Mozilla/5.") == 0 && !isOpera;
-
 function textboxSelect(oTextbox, iStart, iEnd)
 {
 	switch(arguments.length)
@@ -14,14 +10,15 @@ function textboxSelect(oTextbox, iStart, iEnd)
 		iEnd = oTextbox.value.length;
 		/* falls through */
 	case 3:
-		if (isIE)
+		if (oTextbox.createTextRange)
 		{
 			var oRange = oTextbox.createTextRange();
 			oRange.moveStart("character", iStart);
 			oRange.moveEnd("character", - oTextbox.value.length + iEnd);
 			oRange.select();
+			oTextbox.scrollTop = oRange.boundingTop
 		}
-		else if (isMoz)
+		else if (oTextbox.setSelectionRange)
 		{
 			oTextbox.setSelectionRange(iStart, iEnd);
 		}
