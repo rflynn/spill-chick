@@ -357,21 +357,6 @@ class Chick:
 		d = Doc(txt, self.w)
 		logger.debug('doc=%s' % d)
 
-		# FIXME: i don't think i need this anymore, except perhaps as a last-ditch option
-		"""
-		# start out like a regular spellchecker
-		# address unknown tokens (ngram size 1) first
-		# TODO: incorporate this into part just like ngram_like does so they can be evaluated in context; STOP RETURNING THESE ALONE!
-		ut = list(d.unknownToks())
-		logger.debug('unknownToks=%s' % ut)
-		utChanges = [(u, (self.w.correct(u[0]), u[1], u[2], u[3])) for u in ut]
-		logger.debug('utChanges=%s' % utChanges)
-		utChanges2 = list(filter(lambda x: x not in skip, utChanges))
-		for old,new in utChanges2:
-			td = TokenDiff([old], [new], damerau_levenshtein(old[0], new[0]))
-			ngd = NGramDiff([], td, [], self.g)
-			ngds = NGramDiffScore(ngd, None, 1)
-			yield [ngds]
 		"""
 
 		"""
@@ -411,8 +396,25 @@ sugg                             undoubtedly be changed 0
 		# gather all suggestions for all least_common ngrams
 		suggestions = []
 		for target_ngram,target_freq in least_common:
-			suggestions.append(self.ngram_suggest(target_ngram, target_freq, d, max_suggest))
+			suggs = self.ngram_suggest(target_ngram, target_freq, d, max_suggest)
+			if suggs:
+				suggestions.append(suggs)
 
+		if not suggestions:
+			"""
+			"""
+			ut = list(d.unknownToks())
+			logger.debug('unknownToks=%s' % ut)
+			utChanges = [(u, (self.w.correct(u[0]), u[1], u[2], u[3])) for u in ut]
+			logger.debug('utChanges=%s' % utChanges)
+			utChanges2 = list(filter(lambda x: x not in skip, utChanges))
+			for old,new in utChanges2:
+				td = TokenDiff([old], [new], damerau_levenshtein(old[0], new[0]))
+				ngd = NGramDiff([], td, [], self.g)
+				ngds = NGramDiffScore(ngd, None, 1)
+				suggestions.append([ngds])
+
+		logger.debug('------------')
 		logger.debug('suggestions=%s' % (suggestions,))
 		suggs = filter(lambda x:x and x[0].ngd.newfreq != x[0].ngd.oldfreq, suggestions)
 		logger.debug('suggs=%s' % (suggs,))
