@@ -20,6 +20,7 @@ Mutations
 		* merge (miss,spelling) -> (misspelling)
 	* deletion : item missing
 	* transposition : correct items, incorrect order
+		* letters wap
 
 TODO:
 	* figure out how to handle apostrophes
@@ -259,6 +260,36 @@ class Chick:
 					perms.append(ngd)
 		return perms
 
+	@staticmethod
+	def ngrampos_split_back(x, y):
+		return (x[0]+y[0][:1], x[1], x[2], x[3]), (y[0][1:], y[1], y[2], y[3])
+
+	@staticmethod
+	def ngrampos_split_forward(x, y):
+		return (x[0][:-1], x[1], x[2], x[3]), (x[0][-1:]+y[0], y[1], y[2], y[3])
+
+	def intertoken_letterswap(self, l, target_freq):
+		# generate permutations of token list with the beginning and ending letter of each
+		# token swapped between adjacent tokens
+		if len(l) < 2:
+			return []
+		perms = []
+		for i in range(len(l)-1):
+			if len(l[i][0]) > 1:
+				x,y = Chick.ngrampos_split_forward(l[i], l[i+1])
+				if self.g.freq((x[0],y[0])) >= target_freq:
+					td = TokenDiff(l[i:i+2], [x,y], 0)
+					ngd = NGramDiff(l[:i], td, l[i+2:], self.g)
+					perms.append(ngd)
+			if len(l[i+1][0]) > 1:
+				x,y = Chick.ngrampos_split_back(l[i], l[i+1])
+				if self.g.freq((x[0],y[0])) >= target_freq:
+					td = TokenDiff(l[i:i+2], [x,y], 0)
+					ngd = NGramDiff(l[:i], td, l[i+2:], self.g)
+					perms.append(ngd)
+		#print 'intertoken_letterswap=',perms
+		return perms
+
 	def do_suggest(self, target_ngram, target_freq, ctx, d, max_suggest=5):
 		"""
 		given an infrequent ngram from a document, attempt to calculate a more frequent one
@@ -273,6 +304,8 @@ class Chick:
 		# TODO: smarter token joining; pre-calculate based on tokens
 		part += self.permjoin(target_ngram, target_freq)
 		#logger.debug('permjoin(%s)=%s' % (target_ngram, part,))
+
+		part += self.intertoken_letterswap(target_ngram, target_freq)
 
 		part += self.permphon(target_ngram, target_freq)
 
