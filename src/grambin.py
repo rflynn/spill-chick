@@ -19,7 +19,7 @@ class GramsBin:
 		#print 'freq()=',ng
 		l = len(ng)
 		if l > 1:
-			ids = [ self.ng.word2id(w) for w in ng ]
+			ids = map(self.ng.word2id, ng)
 			if l > 3:
 				# chop up id list into ngram3-sized chunks
 				smaller = [tuple(ids[i:i+3]) for i in range(len(ids)-3+1)]
